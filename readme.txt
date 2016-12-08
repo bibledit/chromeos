@@ -1,3 +1,3 @@
-Porting Bibledit to Chrome OS.
+Bibledit for Chrome OS.
 
-2016: It is not certain whether Chrome OS has a future. It may be merged with Android.
+Bibledit for Chrome OS is available from the Chrome Web Store.
