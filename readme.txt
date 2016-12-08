@@ -1,8 +1,6 @@
-Bibledit for Chrome OS.
-
 Bibledit for Chrome OS is available from the Chrome Web Store.
 
-Bibledit for Android runs on Chrome OS through ARC Welder.
+It runs on Chrome OS through ARC Welder and will soon run natively.
 
 More information is here:
 
