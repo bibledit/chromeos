@@ -42,35 +42,38 @@ namespace {
   // The string sent back to the browser upon receipt of a message containing "hello".
   const char* kReplyString = "Hello from native Bibledit";
   
-} // namespace
+}
 
 
-/// The Instance class.  One of these exists for each instance of your NaCl
-/// module on the web page.  The browser will ask the Module object to create
-/// a new Instance for each occurrence of the <embed> tag that has these
-/// attributes:
-///     src="hello_tutorial.nmf"
-///     type="application/x-pnacl"
-/// To communicate with the browser, you must override HandleMessage() to
-/// receive messages from the browser, and use PostMessage() to send messages
-/// back to the browser.  Note that this interface is asynchronous.
-class HelloTutorialInstance : public pp::Instance {
+/*
+ The Instance class.
+ One of these exists for each instance of your NaCl module on the web page.
+ The browser will ask the Module object to create a new Instance 
+ for each occurrence of the <embed> tag that has these attributes:
+ * src="hello_tutorial.nmf"
+ * type="application/x-pnacl"
+ To communicate with the browser, you must override HandleMessage() 
+ to receive messages from the browser, 
+ and use PostMessage() to send messages back to the browser.
+ Note that this interface is asynchronous.
+*/
+class BibleditInstance : public pp::Instance {
  public:
-  /// The constructor creates the plugin-side instance.
-  /// @param[in] instance the handle to the browser-side plugin instance.
-  explicit HelloTutorialInstance(PP_Instance instance) : pp::Instance(instance)
+  // The constructor creates the plugin-side instance.
+  // @param[in] instance the handle to the browser-side plugin instance.
+  explicit BibleditInstance (PP_Instance instance) : pp::Instance (instance)
   {}
-  virtual ~HelloTutorialInstance() {}
+  virtual ~BibleditInstance () {}
 
-  /// Handler for messages coming in from the browser via postMessage().  The
-  /// @a var_message can contain be any pp:Var type; for example int, string
-  /// Array or Dictinary. Please see the pp:Var documentation for more details.
-  /// @param[in] var_message The message posted by the browser.
+  // Handler for messages coming in from the browser via postMessage().
+  // The @a var_message can contain be any pp:Var type; for example int,
+  // string Array or Dictinary.
+  // Please see the pp:Var documentation for more details.
+  // @param[in] var_message The message posted by the browser.
   virtual void HandleMessage(const pp::Var& var_message) {
     // Make this function handle the incoming message.
     // Ignore the message if it is not a string.
     if (!var_message.is_string()) return;
-
     // Get the string message and compare it to "hello".
     string message = var_message.AsString();
     if (message == kHelloString) {
@@ -82,30 +85,30 @@ class HelloTutorialInstance : public pp::Instance {
 };
 
 
-/// The Module class.  The browser calls the CreateInstance() method to create
-/// an instance of your NaCl module on the web page.  The browser creates a new
-/// instance for each <embed> tag with type="application/x-pnacl".
-class HelloTutorialModule : public pp::Module {
+// The Module class.
+// The browser calls the CreateInstance() method to create an instance of your NaCl module on the web page.
+// The browser creates a new instance for each <embed> tag with type="application/x-pnacl".
+class BibleditModule : public pp::Module {
  public:
-  HelloTutorialModule() : pp::Module() {}
-  virtual ~HelloTutorialModule() {}
+  BibleditModule () : pp::Module () {}
+  virtual ~BibleditModule () {}
 
-  /// Create and return a HelloTutorialInstance object.
-  /// @param[in] instance The browser-side instance.
-  /// @return the plugin-side instance.
-  virtual pp::Instance* CreateInstance(PP_Instance instance) {
-    return new HelloTutorialInstance(instance);
+  // Create and return a BibleditInstance object.
+  // @param[in] instance The browser-side instance.
+  // @return the plugin-side instance.
+  virtual pp::Instance* CreateInstance (PP_Instance instance) {
+    return new BibleditInstance (instance);
   }
 };
 
 
 namespace pp {
-/// Factory function called by the browser when the module is first loaded.
-/// The browser keeps a singleton of this module.  It calls the
-/// CreateInstance() method on the object you return to make instances.  There
-/// is one instance per <embed> tag on the page.  This is the main binding
-/// point for your NaCl module with the browser.
-Module* CreateModule() {
-  return new HelloTutorialModule();
+  // Factory function called by the browser when the module is first loaded.
+  // The browser keeps a singleton of this module.
+  // It calls the CreateInstance() method on the object you return to make instances.
+  // There is one instance per <embed> tag on the page.
+  // This is the main binding point for your NaCl module with the browser.
+  Module* CreateModule() {
+    return new BibleditModule();
+  }
 }
-}  // namespace pp

@@ -23,16 +23,16 @@ $ (document).ready (function () {
   listener.addEventListener ("message", handleMessage, true);
 });
 
-var HelloTutorialModule = null;  // Global application object.
+var BibleditModule = null;  // Global application object.
 var statusText = 'NO-STATUS';
 
 
 // Indicate load success.
 function moduleDidLoad() {
-  HelloTutorialModule = document.getElementById ("bibledit");
+  BibleditModule = document.getElementById ("bibledit");
   updateStatus ("The module did load");
   // Send a message to the Native Client module
-  HelloTutorialModule.postMessage ("hello");
+  BibleditModule.postMessage ("hello");
 }
 
 // The 'message' event handler.  This handler is fired when the NaCl module
@@ -47,7 +47,7 @@ function handleMessage(message_event) {
 // status message indicating that the module is still loading.  Otherwise,
 // do not change the status message.
 function pageDidLoad() {
-  if (HelloTutorialModule == null) {
+  if (BibleditModule == null) {
     updateStatus('LOADING...');
   } else {
     // It's possible that the Native Client module onload event fired
