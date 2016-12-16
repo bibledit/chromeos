@@ -1,2 +1,2 @@
 # Bibledit Chrome OS
-Bibledit as a Chrome app
+Bibledit as a native Chrome app

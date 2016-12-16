@@ -7,7 +7,7 @@ export NACL_SDK_ROOT=~/scr/nacl_sdk/pepper_49
 make $@
 
 # Copy output into place.
-PEXE=pnacl/Release/bibledit.pexe
-[[ -e $PEXE ]] && cp $PEXE .
-NMF=pnacl/Release/bibledit.nmf
-[[ -e $NMF ]] && cp $NMF .
+FILE=pnacl/Release/bibledit.pexe
+[[ -e $FILE ]] && cp $FILE .
+FILE=pnacl/Release/bibledit.nmf
+[[ -e $FILE ]] && cp $FILE .

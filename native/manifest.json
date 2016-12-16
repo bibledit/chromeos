@@ -19,6 +19,6 @@
     },
     "persistent": false
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "unlimitedStorage"],
   "minimum_chrome_version": "28"
 }

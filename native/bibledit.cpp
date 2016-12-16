@@ -1,47 +1,72 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-/// @file hello_tutorial.cc
-/// This example demonstrates loading, running and scripting a very simple NaCl
-/// module.  To load the NaCl module, the browser first looks for the
-/// CreateModule() factory method (at the end of this file).  It calls
-/// CreateModule() once to load the module code.  After the code is loaded,
-/// CreateModule() is not called again.
-///
-/// Once the code is loaded, the browser calls the CreateInstance()
-/// method on the object returned by CreateModule().  It calls CreateInstance()
-/// each time it encounters an <embed> tag that references your NaCl module.
-///
-/// The browser can talk to your NaCl module via the postMessage() Javascript
-/// function.  When you call postMessage() on your NaCl module from the browser,
-/// this becomes a call to the HandleMessage() method of your pp::Instance
-/// subclass.  You can send messages back to the browser by calling the
-/// PostMessage() method on your pp::Instance.  Note that these two methods
-/// (postMessage() in Javascript and PostMessage() in C++) are asynchronous.
-/// This means they return immediately - there is no waiting for the message
-/// to be handled.  This has implications in your program design, particularly
-/// when mutating property values that are exposed to both the browser and the
-/// NaCl module.
+/*
+ Copyright (©) 2003-2016 Teus Benschop.
+ 
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
 
 
+#define __STDC_LIMIT_MACROS
+#include "ppapi/c/pp_stdint.h"
+#include "ppapi/c/ppb_file_io.h"
 #include "ppapi/cpp/instance.h"
 #include "ppapi/cpp/module.h"
+#include "ppapi/cpp/directory_entry.h"
+#include "ppapi/cpp/file_io.h"
+#include "ppapi/cpp/file_ref.h"
+#include "ppapi/cpp/file_system.h"
+#include "ppapi/cpp/message_loop.h"
 #include "ppapi/cpp/var.h"
+#include "ppapi/cpp/var_array.h"
+#include "ppapi/utility/completion_callback_factory.h"
+
 #include <stdio.h>
-#include <ostream>
+
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <map>
+#include <cstring>
+#include <algorithm>
+#include <set>
+#include <chrono>
+#include <iomanip>
+#include <stdexcept>
+#include <thread>
+#include <cmath>
+#include <mutex>
+#include <numeric>
+#include <random>
+#include <limits>
 
 
 using namespace std;
 
 
-namespace {
+#ifndef INT32_MAX
+#define INT32_MAX (0x7FFFFFFF)
+#endif
 
-  // The expected string sent by the browser.
-  const char* kHelloString = "hello";
-  // The string sent back to the browser upon receipt of a message containing "hello".
-  const char* kReplyString = "Hello from native Bibledit";
-  
+
+thread * bibledit_worker_thread;
+
+
+void bibledit_worker_thread_function ()
+{
+  cout << "Thread ran" << endl;
 }
 
 
@@ -50,7 +75,7 @@ namespace {
  One of these exists for each instance of your NaCl module on the web page.
  The browser will ask the Module object to create a new Instance 
  for each occurrence of the <embed> tag that has these attributes:
- * src="hello_tutorial.nmf"
+ * src="bibledit.nmf"
  * type="application/x-pnacl"
  To communicate with the browser, you must override HandleMessage() 
  to receive messages from the browser, 
@@ -58,27 +83,32 @@ namespace {
  Note that this interface is asynchronous.
 */
 class BibleditInstance : public pp::Instance {
- public:
+public:
   // The constructor creates the plugin-side instance.
   // @param[in] instance the handle to the browser-side plugin instance.
   explicit BibleditInstance (PP_Instance instance) : pp::Instance (instance)
-  {}
-  virtual ~BibleditInstance () {}
+  {
+    bibledit_worker_thread = new thread (bibledit_worker_thread_function);
+  }
+  
+  virtual ~BibleditInstance ()
+  {
+    bibledit_worker_thread->join ();
+  }
 
   // Handler for messages coming in from the browser via postMessage().
-  // The @a var_message can contain be any pp:Var type; for example int,
-  // string Array or Dictinary.
+  // The @a var_message can contain be any pp:Var type; for example int, string Array or Dictionary.
   // Please see the pp:Var documentation for more details.
   // @param[in] var_message The message posted by the browser.
-  virtual void HandleMessage(const pp::Var& var_message) {
+  virtual void HandleMessage (const pp::Var& var_message) {
     // Make this function handle the incoming message.
     // Ignore the message if it is not a string.
     if (!var_message.is_string()) return;
     // Get the string message and compare it to "hello".
-    string message = var_message.AsString();
-    if (message == kHelloString) {
+    string message = var_message.AsString ();
+    if (message == "hello") {
       // If it matches, send our response back to JavaScript.
-      pp::Var var_reply (kReplyString);
+      pp::Var var_reply ("Hello from native Bibledit");
       PostMessage(var_reply);
     }
   }
@@ -89,9 +119,13 @@ class BibleditInstance : public pp::Instance {
 // The browser calls the CreateInstance() method to create an instance of your NaCl module on the web page.
 // The browser creates a new instance for each <embed> tag with type="application/x-pnacl".
 class BibleditModule : public pp::Module {
- public:
-  BibleditModule () : pp::Module () {}
-  virtual ~BibleditModule () {}
+public:
+  BibleditModule () : pp::Module ()
+  {
+  }
+  virtual ~BibleditModule ()
+  {
+  }
 
   // Create and return a BibleditInstance object.
   // @param[in] instance The browser-side instance.
@@ -109,6 +143,6 @@ namespace pp {
   // There is one instance per <embed> tag on the page.
   // This is the main binding point for your NaCl module with the browser.
   Module* CreateModule() {
-    return new BibleditModule();
+    return new BibleditModule ();
   }
 }

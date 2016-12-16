@@ -14,7 +14,6 @@
 		CAAC813B1E02830400A44986 /* index.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = index.css; sourceTree = "<group>"; };
 		CAAC813C1E02830400A44986 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; lineEnding = 0; path = index.html; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.html; };
 		CAAC813D1E02830400A44986 /* index.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; lineEnding = 0; path = index.js; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.javascript; };
-		CAAC813E1E02830B00A44986 /* jquery.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = jquery.js; sourceTree = "<group>"; };
 		CAAC813F1E02830B00A44986 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		CAAC81401E02830B00A44986 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; lineEnding = 0; path = Makefile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = "<none>"; };
 		CAAC81411E02830B00A44986 /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = manifest.json; sourceTree = "<group>"; };
@@ -56,7 +55,6 @@
 				CAAC813B1E02830400A44986 /* index.css */,
 				CAAC813C1E02830400A44986 /* index.html */,
 				CAAC813D1E02830400A44986 /* index.js */,
-				CAAC813E1E02830B00A44986 /* jquery.js */,
 				CAAC813F1E02830B00A44986 /* LICENSE */,
 				CAAC81401E02830B00A44986 /* Makefile */,
 				CAA5EB0D1E02C29300EAAEF5 /* develop.txt */,
