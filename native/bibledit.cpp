@@ -61,12 +61,26 @@ using namespace std;
 #endif
 
 
+pp::Instance * bibledit_instance;
 thread * bibledit_worker_thread;
+pp::FileSystem * pepper_file_system;
 
 
 void bibledit_worker_thread_function ()
 {
-  cout << "Thread ran" << endl;
+  cout << "Thread start" << endl;
+
+  // Request 10 Gbyte of space in the persistent local filesystem.
+  // The Chrome app's manifest requests the "unlimitedStorage" permission already.
+  // Google Chrome stores its persistent files in this folder:
+  // ~/Library/Application\ Support/Google/Chrome/Default/File\ System
+  pepper_file_system = new pp::FileSystem (bibledit_instance, PP_FILESYSTEMTYPE_LOCALPERSISTENT);
+  int result = pepper_file_system->Open (10 * 1024 * 1024 * 1024, pp::BlockUntilComplete());
+  if (result != PP_OK) {
+    pepper_file_system = nullptr;
+    cout << "Failed to open local persistent file system with error " << result << endl;
+  }
+  cout << "Thread complete" << endl;
 }
 
 
@@ -88,6 +102,7 @@ public:
   // @param[in] instance the handle to the browser-side plugin instance.
   explicit BibleditInstance (PP_Instance instance) : pp::Instance (instance)
   {
+    bibledit_instance = this;
     bibledit_worker_thread = new thread (bibledit_worker_thread_function);
   }
   
@@ -120,12 +135,8 @@ public:
 // The browser creates a new instance for each <embed> tag with type="application/x-pnacl".
 class BibleditModule : public pp::Module {
 public:
-  BibleditModule () : pp::Module ()
-  {
-  }
-  virtual ~BibleditModule ()
-  {
-  }
+  BibleditModule () : pp::Module () { }
+  virtual ~BibleditModule () { }
 
   // Create and return a BibleditInstance object.
   // @param[in] instance The browser-side instance.
