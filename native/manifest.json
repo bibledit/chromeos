@@ -1,0 +1,24 @@
+{
+  "manifest_version": 2,
+  "name": "Bibledit",
+  "description": "Bible editor",
+  "version": "1.0.100",
+  "icons": {
+    "16":  "pix/bibledit16.png",
+    "24":  "pix/bibledit24.png",
+    "32":  "pix/bibledit32.png",
+    "48":  "pix/bibledit48.png",
+    "64":  "pix/bibledit64.png",
+    "128": "pix/bibledit128.png",
+    "256": "pix/bibledit256.png",
+    "512": "pix/bibledit512.png"
+  },
+  "app": {
+    "background": {
+      "scripts": ["background.js"]
+    },
+    "persistent": false
+  },
+  "permissions": ["storage"],
+  "minimum_chrome_version": "28"
+}

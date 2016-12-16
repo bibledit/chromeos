@@ -1,0 +1,12 @@
+
+*.pexe
+
+*.xcuserstate
+
+*.bc
+
+*.deps
+
+*.o
+
+*.stamp

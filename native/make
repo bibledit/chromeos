@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Set the SDK root.
+export NACL_SDK_ROOT=~/scr/nacl_sdk/pepper_49
+
+# Run the Makefile
+make $@
+
+# Copy output into place.
+PEXE=pnacl/Release/bibledit.pexe
+[[ -e $PEXE ]] && cp $PEXE .
+NMF=pnacl/Release/bibledit.nmf
+[[ -e $NMF ]] && cp $NMF .

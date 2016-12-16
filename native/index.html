@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bibledit</title>
+  <link rel="stylesheet" type="text/css" href="index.css">
+  <script type="text/javascript" src="jquery.js"></script>
+  <script type="text/javascript" src="index.js"></script>
+</head>
+
+<body>
+  <div class="splash">
+    <h3 class="center">Bibledit</h3>
+    <p class="center"><span id="statusField">The app did start</span></p>
+    <div class="centerbible"></div>
+  </div>
+  <div id="listener">
+    <embed id="bibledit"
+      width=0 height=0
+      src="bibledit.nmf"
+      type="application/x-pnacl" />
+  </div>
+</body>
+
+</html>
