@@ -42,7 +42,6 @@ body {
   padding: 5%;
   background: -webkit-radial-gradient(#FDD, #FFD, #FFF);
   background:         radial-gradient(#FDD, #FFD, #FFF);
-  overflow: scroll;
 }
 .splash > * {
   -webkit-box-flex: 1;
