@@ -113,7 +113,8 @@ void pepper_file_save (const string& file_name, const string& file_contents)
 }
 
 
-void pepper_file_load (const string& file_name) {
+void pepper_file_load (const string& file_name)
+{
 
   if (!pepper_file_system) {
     cerr << "File system is not open "  << PP_ERROR_FAILED << endl;
@@ -165,6 +166,118 @@ void pepper_file_load (const string& file_name) {
 }
 
 
+void pepper_file_delete (const string& file_name)
+{
+  if (!pepper_file_system) {
+    cerr << "File system is not open "  << PP_ERROR_FAILED << endl;
+    return;
+  }
+  pp::FileRef ref (* pepper_file_system, file_name.c_str());
+  int32_t result = ref.Delete(pp::BlockUntilComplete());
+  if (result == PP_ERROR_FILENOTFOUND) {
+    cerr << "File or directory not found" << endl;
+    return;
+  } else if (result != PP_OK) {
+    cerr << "Deletion failed " << result << endl;
+    return;
+  }
+  cout << "Delete success" << endl;
+}
+
+
+void ListCallback(int32_t result,
+                  const std::vector<pp::DirectoryEntry>& entries,
+                  pp::FileRef /* unused_ref */) {
+  if (result != PP_OK) {
+    cerr << "List failed " << result << endl;
+    return;
+  }
+  
+  vector <string> sv;
+  for (size_t i = 0; i < entries.size(); ++i) {
+    pp::Var name = entries[i].file_ref().GetName();
+    if (name.is_string()) {
+      sv.push_back(name.AsString());
+      cout << name.AsString() << endl;
+    }
+  }
+  //PostArrayMessage("LIST", sv);
+  cout << "List success" << endl;
+}
+
+
+void pepper_file_list (const string& dir_name)
+{
+  if (!pepper_file_system) {
+    cerr << "File system is not open "  << PP_ERROR_FAILED << endl;
+    return;
+  }
+  
+  pp::FileRef ref (* pepper_file_system, dir_name.c_str());
+  
+  pp::CompletionCallbackFactory <pp::Instance> callback_factory (bibledit_instance);
+
+  // Pass ref along to keep it alive.
+  //ref.ReadDirectoryEntries (callback_factory.NewCallbackWithOutput (ListCallback, ref));
+
+}
+
+
+void pepper_file_make_dir (const string& dir_name)
+{
+  if (!pepper_file_system) {
+    cerr << "File system is not open "  << PP_ERROR_FAILED << endl;
+    return;
+  }
+  pp::FileRef ref (* pepper_file_system, dir_name.c_str());
+  
+  int32_t result = ref.MakeDirectory (PP_MAKEDIRECTORYFLAG_NONE, pp::BlockUntilComplete());
+  if (result != PP_OK) {
+    cerr << "Make directory failed " << result << endl;
+    return;
+  }
+  cout << "Make directory success" << endl;
+}
+
+
+void pepper_file_rename (const string& old_name, const string& new_name)
+{
+  if (!pepper_file_system) {
+    cerr << "File system is not open "  << PP_ERROR_FAILED << endl;
+    return;
+  }
+  
+  pp::FileRef ref_old (* pepper_file_system, old_name.c_str ());
+  pp::FileRef ref_new (* pepper_file_system, new_name.c_str());
+  
+  int32_t result = ref_old.Rename (ref_new, pp::BlockUntilComplete());
+  if (result != PP_OK) {
+    cerr << "Rename failed " << result << endl;
+    return;
+  }
+  cout << "Rename success" << endl;
+}
+
+
+struct PP_CompletionCallback callback;
+
+
+void pepper_file_list_c (const string& dir_name)
+{
+  if (!pepper_file_system) {
+    cerr << "File system is not open "  << PP_ERROR_FAILED << endl;
+    return;
+  }
+  
+  pp::FileRef ref (* pepper_file_system, dir_name.c_str());
+  
+  
+}
+
+
+
+
+
 void bibledit_worker_thread_function ()
 {
   cout << "Thread start" << endl;
@@ -176,7 +289,7 @@ void bibledit_worker_thread_function ()
   // Request 10 Gbyte of space in the persistent local filesystem.
   // The Chrome app's manifest requests the "unlimitedStorage" permission already.
   // Google Chrome stores its persistent files in this folder:
-  // ~/Library/Application\ Support/Google/Chrome/Default/File\ System
+  // ~/Library/Application\ Support/Google/Chrome/Default/Storage/ext/<extension-identifier>/def/File\ System/primary
   // File names for operations on this file system should start with a slash ("/").
   // Run $ du -chs to find total disk usage.
   pepper_file_system = new pp::FileSystem (bibledit_instance, PP_FILESYSTEMTYPE_LOCALPERSISTENT);
@@ -187,6 +300,7 @@ void bibledit_worker_thread_function ()
   }
   pepper_file_save ("/filename.txt", "Contents for the text file");
   pepper_file_load ("/filename.txt");
+  pepper_file_delete ("/filename.txt");
   
   
   cout << "Thread complete" << endl;
