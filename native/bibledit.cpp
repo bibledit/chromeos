@@ -75,6 +75,7 @@ static PPB_InputEvent * ppb_input_event = NULL;
 static PPB_GetInterface ppb_get_interface = NULL;
 static PPB_Messaging* ppb_messaging = NULL;
 static PPB_Var* ppb_var = NULL;
+thread * bibledit_worker_thread;
 
 
 // Post a message to JavaScript.
@@ -86,114 +87,62 @@ static void PostMessage (const string& message)
 }
 
 
-// Define all the functions for each PPP interface that your module uses.
-// Here is a stub for the first function in PPP_Instance.
 static PP_Bool Instance_DidCreate (PP_Instance instance, uint32_t argc, const char* argn [], const char* argv [])
 {
   pp_instance = instance;
-  
-  /*
-  nacl_io_init_ppapi(instance, g_get_browser_interface);
-  
-  // By default, nacl_io mounts / to pass through to the original NaCl
-  // filesystem (which doesn't do much). Let's remount it to a memfs
-  // filesystem.
-  umount("/");
-  mount("", "/", "memfs", 0, "");
-  
-  mount("",                                       // source
-        "/persistent",                            // target
-        "html5fs",                                // filesystemtype
-        0,                                        // mountflags
-        "type=PERSISTENT,expected_size=1048576"); // data
-  
-  mount("",       // source. Use relative URL
-        "/http",  // target
-        "httpfs", // filesystemtype
-        0,        // mountflags
-        "");      // data
-  
-  pthread_create(&g_handle_message_thread, NULL, &HandleMessageThread, NULL);
-  pthread_create(&g_echo_thread, NULL, &EchoThread, NULL);
-  InitializeMessageQueue();
-  */
-  
   return PP_TRUE;
 }
 
 
 static void Instance_DidDestroy (PP_Instance instance)
 {
+  // Never called.
 }
 
 
 static void Instance_DidChangeView (PP_Instance instance, PP_Resource view_resource)
 {
+  // Called right after instance creation.
 }
 
 
 static void Instance_DidChangeFocus (PP_Instance instance, PP_Bool has_focus)
 {
+  // Never called.
 }
 
 
 static PP_Bool Instance_HandleDocumentLoad (PP_Instance instance, PP_Resource url_loader)
 {
-  // NaCl modules do not need to handle the document load function.
+  // Never called.
   return PP_FALSE;
 }
 
 
 static void Messaging_HandleMessage (PP_Instance instance, struct PP_Var message)
 {
-  PostMessage ("Handling the message");
-  
-  /*
-  // Special case for jspipe input handling.
-  if (message.type != PP_VARTYPE_DICTIONARY) {
-    PostMessage("Got unexpected message type: %d\n", message.type);
+  uint32_t length;
+  const char* str = ppb_var->VarToUtf8 (message, &length);
+  if (str == NULL) {
     return;
   }
-  
-  struct PP_Var pipe_var = CStrToVar("pipe");
-  struct PP_Var pipe_name = g_ppb_var_dictionary->Get(message, pipe_var);
-  g_ppb_var->Release(pipe_var);
-  
-  // Special case for jspipe input handling.
-  if (pipe_name.type == PP_VARTYPE_STRING) {
-    char file_name[PATH_MAX];
-    snprintf(file_name, PATH_MAX, "/dev/%s", VarToCStr(pipe_name));
-    int fd = open(file_name, O_RDONLY);
-    g_ppb_var->Release(pipe_name);
-    if (fd < 0) {
-      PostMessage("Warning: opening %s failed.", file_name);
-      goto done;
-    }
-    if (ioctl(fd, NACL_IOC_HANDLEMESSAGE, &message) != 0) {
-      PostMessage("Error: ioctl on %s failed: %s", file_name, strerror(errno));
-    }
-    close(fd);
-    goto done;
-  }
-  
-  g_ppb_var->AddRef(message);
-  if (!EnqueueMessage(message)) {
-    g_ppb_var->Release(message);
-    PostMessage("Warning: dropped message because the queue was full.");
-  }
-  
-done:
-  g_ppb_var->Release(pipe_name);
-   */
+  // Newly allocated $new_str.
+  // $str is NOT NULL-terminated. Copy using memcpy.
+  char* new_str = (char *) malloc (length + 1);
+  memcpy (new_str, str, length);
+  new_str [length] = 0;
+ 
+  PostMessage (new_str);
+  free (new_str);
 }
 
 
-
 // Define PPP_GetInterface.
-// This function should return a non-NULL value for every interface you are using.
+// This function should return a non-NULL value for every interface the app uses.
 // The string for the name of the interface is defined in the interface's header file.
-// The browser calls this function to get pointers to the interfaces that your module implements.
-PP_EXPORT const void* PPP_GetInterface(const char* interface_name) {
+// The browser calls this function to get pointers to the interfaces that the app module implements.
+PP_EXPORT const void* PPP_GetInterface(const char* interface_name)
+{
   // Create structs for each PPP interface.
   // Assign the interface functions to the data fields.
   if (strcmp (interface_name, PPP_INSTANCE_INTERFACE) == 0) {
@@ -206,24 +155,13 @@ PP_EXPORT const void* PPP_GetInterface(const char* interface_name) {
     };
     return &instance_interface;
   }
-  
-  if (strcmp (interface_name, PPP_INPUT_EVENT_INTERFACE) == 0) {
-    /*
-    static PPP_InputEvent input_interface = {
-      &Instance_HandleInput,
-    };
-    return &input_interface;
-    */
-  }
-  
-  else if (strcmp(interface_name, PPP_MESSAGING_INTERFACE) == 0) {
+  if (strcmp(interface_name, PPP_MESSAGING_INTERFACE) == 0) {
     static PPP_Messaging messaging_interface = {
       &Messaging_HandleMessage,
     };
     return &messaging_interface;
   }
-
-  // Return NULL for interfaces that you do not implement.
+  // Return NULL for interfaces not implemented.
   return NULL;
 }
 
@@ -243,12 +181,11 @@ PP_EXPORT int32_t PPP_InitializeModule (PP_Module a_module_id, PPB_GetInterface 
 
 PP_EXPORT void PPP_ShutdownModule ()
 {
+  // Never called.
 }
 
 
 /*
-pp::Instance * bibledit_instance;
-thread * bibledit_worker_thread;
 // Pointer to the file system. Is null on failure.
 pp::FileSystem * pepper_file_system;
 */
