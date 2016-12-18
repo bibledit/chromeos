@@ -16,22 +16,30 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "bibledit.h"
 
-#define __STDC_LIMIT_MACROS
-#include "ppapi/c/pp_stdint.h"
-#include "ppapi/c/ppb_file_io.h"
-#include "ppapi/cpp/instance.h"
-#include "ppapi/cpp/module.h"
-#include "ppapi/cpp/directory_entry.h"
-#include "ppapi/cpp/file_io.h"
-#include "ppapi/cpp/file_ref.h"
-#include "ppapi/cpp/file_system.h"
-#include "ppapi/cpp/message_loop.h"
-#include "ppapi/cpp/var.h"
-#include "ppapi/cpp/var_array.h"
-#include "ppapi/utility/completion_callback_factory.h"
 
+#include <assert.h>
+#include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+#include "ppapi/c/pp_errors.h"
+#include "ppapi/c/pp_module.h"
+#include "ppapi/c/ppp.h"
+// Include the interface headers.
+// PPB APIs are implemented in the "B" (browser) and describe calls from the module to the browser.
+// PPP APIs are implemented in the "P" (plugin) and describe calls from the browser to the native module.
+#include "ppapi/c/ppb_instance.h"
+#include "ppapi/c/ppb_input_event.h"
+#include "ppapi/c/ppb_messaging.h"
+#include "ppapi/c/ppb_var.h"
+#include "ppapi/c/ppp_instance.h"
+#include "ppapi/c/ppp_input_event.h"
+#include "ppapi/c/ppp_messaging.h"
+
 
 #include <iostream>
 #include <sstream>
@@ -61,12 +69,191 @@ using namespace std;
 #endif
 
 
+static PP_Instance pp_instance = NULL;
+static PPB_Instance * ppb_instance = NULL;
+static PPB_InputEvent * ppb_input_event = NULL;
+static PPB_GetInterface ppb_get_interface = NULL;
+static PPB_Messaging* ppb_messaging = NULL;
+static PPB_Var* ppb_var = NULL;
+
+
+// Post a message to JavaScript.
+static void PostMessage (const string& message)
+{
+  struct PP_Var var = ppb_var->VarFromUtf8 (message.c_str (), message.size ());
+  ppb_messaging->PostMessage (pp_instance, var);
+  ppb_var->Release (var);
+}
+
+
+// Define all the functions for each PPP interface that your module uses.
+// Here is a stub for the first function in PPP_Instance.
+static PP_Bool Instance_DidCreate (PP_Instance instance, uint32_t argc, const char* argn [], const char* argv [])
+{
+  pp_instance = instance;
+  
+  /*
+  nacl_io_init_ppapi(instance, g_get_browser_interface);
+  
+  // By default, nacl_io mounts / to pass through to the original NaCl
+  // filesystem (which doesn't do much). Let's remount it to a memfs
+  // filesystem.
+  umount("/");
+  mount("", "/", "memfs", 0, "");
+  
+  mount("",                                       // source
+        "/persistent",                            // target
+        "html5fs",                                // filesystemtype
+        0,                                        // mountflags
+        "type=PERSISTENT,expected_size=1048576"); // data
+  
+  mount("",       // source. Use relative URL
+        "/http",  // target
+        "httpfs", // filesystemtype
+        0,        // mountflags
+        "");      // data
+  
+  pthread_create(&g_handle_message_thread, NULL, &HandleMessageThread, NULL);
+  pthread_create(&g_echo_thread, NULL, &EchoThread, NULL);
+  InitializeMessageQueue();
+  */
+  
+  return PP_TRUE;
+}
+
+
+static void Instance_DidDestroy (PP_Instance instance)
+{
+}
+
+
+static void Instance_DidChangeView (PP_Instance instance, PP_Resource view_resource)
+{
+}
+
+
+static void Instance_DidChangeFocus (PP_Instance instance, PP_Bool has_focus)
+{
+}
+
+
+static PP_Bool Instance_HandleDocumentLoad (PP_Instance instance, PP_Resource url_loader)
+{
+  // NaCl modules do not need to handle the document load function.
+  return PP_FALSE;
+}
+
+
+static void Messaging_HandleMessage (PP_Instance instance, struct PP_Var message)
+{
+  PostMessage ("Handling the message");
+  
+  /*
+  // Special case for jspipe input handling.
+  if (message.type != PP_VARTYPE_DICTIONARY) {
+    PostMessage("Got unexpected message type: %d\n", message.type);
+    return;
+  }
+  
+  struct PP_Var pipe_var = CStrToVar("pipe");
+  struct PP_Var pipe_name = g_ppb_var_dictionary->Get(message, pipe_var);
+  g_ppb_var->Release(pipe_var);
+  
+  // Special case for jspipe input handling.
+  if (pipe_name.type == PP_VARTYPE_STRING) {
+    char file_name[PATH_MAX];
+    snprintf(file_name, PATH_MAX, "/dev/%s", VarToCStr(pipe_name));
+    int fd = open(file_name, O_RDONLY);
+    g_ppb_var->Release(pipe_name);
+    if (fd < 0) {
+      PostMessage("Warning: opening %s failed.", file_name);
+      goto done;
+    }
+    if (ioctl(fd, NACL_IOC_HANDLEMESSAGE, &message) != 0) {
+      PostMessage("Error: ioctl on %s failed: %s", file_name, strerror(errno));
+    }
+    close(fd);
+    goto done;
+  }
+  
+  g_ppb_var->AddRef(message);
+  if (!EnqueueMessage(message)) {
+    g_ppb_var->Release(message);
+    PostMessage("Warning: dropped message because the queue was full.");
+  }
+  
+done:
+  g_ppb_var->Release(pipe_name);
+   */
+}
+
+
+
+// Define PPP_GetInterface.
+// This function should return a non-NULL value for every interface you are using.
+// The string for the name of the interface is defined in the interface's header file.
+// The browser calls this function to get pointers to the interfaces that your module implements.
+PP_EXPORT const void* PPP_GetInterface(const char* interface_name) {
+  // Create structs for each PPP interface.
+  // Assign the interface functions to the data fields.
+  if (strcmp (interface_name, PPP_INSTANCE_INTERFACE) == 0) {
+    static PPP_Instance instance_interface = {
+      &Instance_DidCreate,
+      &Instance_DidDestroy,
+      &Instance_DidChangeView,
+      &Instance_DidChangeFocus,
+      &Instance_HandleDocumentLoad
+    };
+    return &instance_interface;
+  }
+  
+  if (strcmp (interface_name, PPP_INPUT_EVENT_INTERFACE) == 0) {
+    /*
+    static PPP_InputEvent input_interface = {
+      &Instance_HandleInput,
+    };
+    return &input_interface;
+    */
+  }
+  
+  else if (strcmp(interface_name, PPP_MESSAGING_INTERFACE) == 0) {
+    static PPP_Messaging messaging_interface = {
+      &Messaging_HandleMessage,
+    };
+    return &messaging_interface;
+  }
+
+  // Return NULL for interfaces that you do not implement.
+  return NULL;
+}
+
+
+// Define PPP_InitializeModule, the entry point of your module.
+// Retrieve the API for the browser-side (PPB) interfaces you will use.
+PP_EXPORT int32_t PPP_InitializeModule (PP_Module a_module_id, PPB_GetInterface get_browser)
+{
+  ppb_get_interface = get_browser;
+  ppb_messaging = (PPB_Messaging *) (get_browser (PPB_MESSAGING_INTERFACE));
+  ppb_var = (PPB_Var *) (get_browser (PPB_VAR_INTERFACE));
+  ppb_instance = (PPB_Instance *) (get_browser (PPB_INSTANCE_INTERFACE));
+  ppb_input_event = (PPB_InputEvent *) (get_browser (PPB_INPUT_EVENT_INTERFACE));
+  return PP_OK;
+}
+
+
+PP_EXPORT void PPP_ShutdownModule ()
+{
+}
+
+
+/*
 pp::Instance * bibledit_instance;
 thread * bibledit_worker_thread;
 // Pointer to the file system. Is null on failure.
 pp::FileSystem * pepper_file_system;
+*/
 
-
+/*
 void pepper_file_save (const string& file_name, const string& file_contents)
 {
 
@@ -187,7 +374,7 @@ void pepper_file_delete (const string& file_name)
 
 void ListCallback(int32_t result,
                   const std::vector<pp::DirectoryEntry>& entries,
-                  pp::FileRef /* unused_ref */) {
+                  pp::FileRef) {
   if (result != PP_OK) {
     cerr << "List failed " << result << endl;
     return;
@@ -257,31 +444,14 @@ void pepper_file_rename (const string& old_name, const string& new_name)
   }
   cout << "Rename success" << endl;
 }
-
-
-struct PP_CompletionCallback callback;
-
-
-void pepper_file_list_c (const string& dir_name)
-{
-  if (!pepper_file_system) {
-    cerr << "File system is not open "  << PP_ERROR_FAILED << endl;
-    return;
-  }
-  
-  pp::FileRef ref (* pepper_file_system, dir_name.c_str());
-  
-  
-}
-
-
-
-
+*/
+ 
 
 void bibledit_worker_thread_function ()
 {
   cout << "Thread start" << endl;
 
+  /*
   // Open the file system on this thread.
   // Since this is the first operation we perform there,
   // and because we do everything on this thread synchronously,
@@ -301,82 +471,7 @@ void bibledit_worker_thread_function ()
   pepper_file_save ("/filename.txt", "Contents for the text file");
   pepper_file_load ("/filename.txt");
   pepper_file_delete ("/filename.txt");
-  
+  */
   
   cout << "Thread complete" << endl;
-}
-
-
-/*
- The Instance class.
- One of these exists for each instance of your NaCl module on the web page.
- The browser will ask the Module object to create a new Instance 
- for each occurrence of the <embed> tag that has these attributes:
- * src="bibledit.nmf"
- * type="application/x-pnacl"
- To communicate with the browser, you must override HandleMessage() 
- to receive messages from the browser, 
- and use PostMessage() to send messages back to the browser.
- Note that this interface is asynchronous.
-*/
-class BibleditInstance : public pp::Instance {
-public:
-  // The constructor creates the plugin-side instance.
-  // @param[in] instance the handle to the browser-side plugin instance.
-  explicit BibleditInstance (PP_Instance instance) : pp::Instance (instance)
-  {
-    bibledit_instance = this;
-    bibledit_worker_thread = new thread (bibledit_worker_thread_function);
-  }
-  
-  virtual ~BibleditInstance ()
-  {
-    bibledit_worker_thread->join ();
-  }
-
-  // Handler for messages coming in from the browser via postMessage().
-  // The @a var_message can contain be any pp:Var type; for example int, string Array or Dictionary.
-  // Please see the pp:Var documentation for more details.
-  // @param[in] var_message The message posted by the browser.
-  virtual void HandleMessage (const pp::Var& var_message) {
-    // Make this function handle the incoming message.
-    // Ignore the message if it is not a string.
-    if (!var_message.is_string()) return;
-    // Get the string message and compare it to "hello".
-    string message = var_message.AsString ();
-    if (message == "hello") {
-      // If it matches, send our response back to JavaScript.
-      pp::Var var_reply ("Hello from native Bibledit");
-      PostMessage(var_reply);
-    }
-  }
-};
-
-
-// The Module class.
-// The browser calls the CreateInstance() method to create an instance of your NaCl module on the web page.
-// The browser creates a new instance for each <embed> tag with type="application/x-pnacl".
-class BibleditModule : public pp::Module {
-public:
-  BibleditModule () : pp::Module () { }
-  virtual ~BibleditModule () { }
-
-  // Create and return a BibleditInstance object.
-  // @param[in] instance The browser-side instance.
-  // @return the plugin-side instance.
-  virtual pp::Instance* CreateInstance (PP_Instance instance) {
-    return new BibleditInstance (instance);
-  }
-};
-
-
-namespace pp {
-  // Factory function called by the browser when the module is first loaded.
-  // The browser keeps a singleton of this module.
-  // It calls the CreateInstance() method on the object you return to make instances.
-  // There is one instance per <embed> tag on the page.
-  // This is the main binding point for your NaCl module with the browser.
-  Module* CreateModule() {
-    return new BibleditModule ();
-  }
 }

@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Clean up
+FILE=pnacl/Release/bibledit.pexe
+[[ -e $FILE ]] && rm $FILE
+FILE=pnacl/Release/bibledit.nmf
+[[ -e $FILE ]] && rm $FILE
+FILE=bibledit.pexe
+[[ -e $FILE ]] && rm $FILE
+
 # Set the SDK root.
 export NACL_SDK_ROOT=~/scr/nacl_sdk/pepper_49
 

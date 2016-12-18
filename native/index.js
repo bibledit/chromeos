@@ -99,21 +99,21 @@ function moduleDidLoad() {
 function moduleDidEndLoad () {
   var lastError = event.target.lastError;
   if (lastError == undefined || lastError.length == 0) {
-    lastError = "<none>";
+    lastError = "none";
   }
-  updateStatus("Finished loading, last error: " + lastError);
+  updateStatus ("Finished loading, last error: " + lastError);
 }
 
 
 function moduleDidCrash () {
   var lastError = event.target.exitStatus;
-  updateStatus("Crashed with exit status " + lastError);
+  updateStatus ("Crashed with exit status " + lastError);
 }
 
 
 // The "message" event handler.
 // This handler is fired when the NaCl module posts a message to the browser
-// by calling PPB_Messaging.PostMessage() (in C) or pp::Instance.PostMessage() (in C++).
+// by calling PPB_Messaging.PostMessage() in C or pp::Instance.PostMessage() in C++.
 function handleMessage (message_event) {
   updateStatus (message_event.data);
 }
