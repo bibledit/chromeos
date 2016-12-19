@@ -259,7 +259,7 @@ void pepper_file_list_c (const string& dir_name)
 
 
 
-void bibledit_worker_thread_function ()
+void worker_thread_function ()
 {
   cout << "Thread start" << endl;
   
@@ -307,7 +307,7 @@ public:
   explicit BibleditInstance (PP_Instance instance) : pp::Instance (instance)
   {
     pepper_instance = this;
-    bibledit_worker_thread = new thread (bibledit_worker_thread_function);
+    bibledit_worker_thread = new thread (worker_thread_function);
   }
   
   virtual ~BibleditInstance ()

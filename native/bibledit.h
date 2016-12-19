@@ -56,5 +56,5 @@ extern "C" {
 #endif
 
 
-void bibledit_worker_thread_function ();
+void worker_thread_function ();
 void post_message_to_browser (const string& message);

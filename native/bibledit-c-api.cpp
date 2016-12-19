@@ -64,7 +64,7 @@ void post_message_to_browser (const string& message)
 static PP_Bool Instance_DidCreate (PP_Instance instance, uint32_t argc, const char* argn [], const char* argv [])
 {
   pp_instance = instance;
-  bibledit_worker_thread = new thread (bibledit_worker_thread_function);
+  bibledit_worker_thread = new thread (worker_thread_function);
   return PP_TRUE;
 }
 
@@ -356,7 +356,7 @@ void pepper_file_rename (const string& old_name, const string& new_name)
 */
 
 
-void bibledit_worker_thread_function ()
+void worker_thread_function ()
 {
   cout << "Thread start" << endl;
 
