@@ -166,27 +166,6 @@ void pepper_file_delete (const string& file_name)
 }
 
 
-void ListCallback(int32_t result,
-                  const std::vector<pp::DirectoryEntry>& entries,
-                  pp::FileRef /* unused_ref */) {
-  if (result != PP_OK) {
-    cerr << "List failed " << result << endl;
-    return;
-  }
-  
-  vector <string> sv;
-  for (size_t i = 0; i < entries.size(); ++i) {
-    pp::Var name = entries[i].file_ref().GetName();
-    if (name.is_string()) {
-      sv.push_back(name.AsString());
-      cout << name.AsString() << endl;
-    }
-  }
-  //PostArrayMessage("LIST", sv);
-  cout << "List success" << endl;
-}
-
-
 void pepper_file_make_dir (const string& dir_name)
 {
   if (!pepper_file_system) {
@@ -223,7 +202,25 @@ void pepper_file_rename (const string& old_name, const string& new_name)
 }
 
 
-struct PP_CompletionCallback callback;
+void ListCallback(int32_t result,
+                  const std::vector<pp::DirectoryEntry>& entries,
+                  pp::FileRef /* unused_ref */) {
+  if (result != PP_OK) {
+    cerr << "List failed " << result << endl;
+    return;
+  }
+  
+  vector <string> sv;
+  for (size_t i = 0; i < entries.size(); ++i) {
+    pp::Var name = entries[i].file_ref().GetName();
+    if (name.is_string()) {
+      sv.push_back(name.AsString());
+      cout << name.AsString() << endl;
+    }
+  }
+  //PostArrayMessage("LIST", sv);
+  cout << "List success" << endl;
+}
 
 
 void pepper_file_list (const string& dir_name)
