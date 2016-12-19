@@ -25,16 +25,11 @@
 
 #include "ppapi/c/pp_stdint.h"
 #include "ppapi/c/ppb_file_io.h"
-#include "ppapi/cpp/instance.h"
-#include "ppapi/cpp/module.h"
 #include "ppapi/cpp/directory_entry.h"
 #include "ppapi/cpp/file_io.h"
 #include "ppapi/cpp/file_ref.h"
 #include "ppapi/cpp/file_system.h"
 #include "ppapi/cpp/message_loop.h"
-#include "ppapi/cpp/var.h"
-#include "ppapi/cpp/var_array.h"
-#include "ppapi/utility/completion_callback_factory.h"
 
 
 
@@ -43,9 +38,12 @@
 #endif
 
 
-pp::Instance * pepper_instance;
-pp::FileSystem * pepper_file_system; // Null on failure.
-thread * main_worker_thread;
+pp::Instance * pepper_instance = nullptr;
+pp::FileSystem * pepper_file_system = nullptr; // Null on failure.
+thread * main_worker_thread = nullptr;
+BibleditInstance * bibledit_instance = nullptr;
+pp::CompletionCallbackFactory <BibleditInstance> * callback_factory = nullptr;
+
 
 
 void pepper_file_save (const string& file_name, const string& file_contents)
@@ -202,24 +200,33 @@ void pepper_file_rename (const string& old_name, const string& new_name)
 }
 
 
+
 void ListCallback(int32_t result,
                   const std::vector<pp::DirectoryEntry>& entries,
-                  pp::FileRef /* unused_ref */) {
+                  pp::FileRef /*unused_ref*/) {
   if (result != PP_OK) {
-    cerr << "List failed " << result << endl;
+    //ShowErrorMessage("List failed", result);
     return;
   }
   
-  vector <string> sv;
+  std::stringstream ss;
+  ss << "LIST";
   for (size_t i = 0; i < entries.size(); ++i) {
     pp::Var name = entries[i].file_ref().GetName();
     if (name.is_string()) {
-      sv.push_back(name.AsString());
-      cout << name.AsString() << endl;
+      ss << "|" << name.AsString();
     }
   }
-  //PostArrayMessage("LIST", sv);
-  cout << "List success" << endl;
+  //PostMessage(ss.str());
+  //ShowStatusMessage("List success");
+}
+
+void OnReadDirectoryEntries (int32_t result, const std::vector<pp::DirectoryEntry>& entries)
+{
+  cout << "OnReadDirectoryEntries" << endl;
+  if (result == PP_OK) {
+
+  }
 }
 
 
@@ -229,13 +236,17 @@ void pepper_file_list (const string& dir_name)
     cerr << "File system is not open "  << PP_ERROR_FAILED << endl;
     return;
   }
+  cout << "Listing files at " << dir_name << endl;
+  
   
   pp::FileRef ref (* pepper_file_system, dir_name.c_str());
   
-  pp::CompletionCallbackFactory <pp::Instance> callback_factory (pepper_instance);
   
   // Pass ref along to keep it alive.
-  //ref.ReadDirectoryEntries (callback_factory.NewCallbackWithOutput (ListCallback, ref));
+  // ref.ReadDirectoryEntries (callback_factory->NewCallbackWithOutput (&BibleditInstance::ListCallback, ref));
+  // ref.ReadDirectoryEntries (pp::BlockUntilComplete()));
+  // ref.ReadDirectoryEntries (&OnReadDirectoryEntries2));
+  ref.ReadDirectoryEntries (callback_factory->NewCallbackWithOutput (&BibleditInstance::ListCallback, ref));
   
 }
 
@@ -243,6 +254,10 @@ void pepper_file_list (const string& dir_name)
 void main_worker_thread_function ()
 {
   cout << "Thread start" << endl;
+  
+  pp::MessageLoop message_loop = pp::MessageLoop ();
+  message_loop.AttachToCurrentThread ();
+  message_loop.Run ();
   
   // Open the file system on this thread.
   // Since this is the first operation we perform there,
@@ -265,79 +280,74 @@ void main_worker_thread_function ()
   pepper_file_list ("/");
   pepper_file_delete ("/filename.txt");
   
-  
+  //message_loop.PostQuit (true);
   cout << "Thread complete" << endl;
 }
 
 
-/*
-The Instance class.
-One of these exists for each instance of your NaCl module on the web page.
-The browser will ask the Module object to create a new Instance
-for each occurrence of the <embed> tag that has these attributes:
-* src="bibledit.nmf"
-* type="application/x-pnacl"
-To communicate with the browser, you must override HandleMessage () to receive messages from the browser,
-and use PostMessage() to send messages back to the browser.
-Note that this interface is asynchronous.
-*/
-class BibleditInstance : public pp::Instance
+// The constructor creates the plugin-side instance.
+// @param[in] instance the handle to the browser-side plugin instance.
+BibleditInstance::BibleditInstance (PP_Instance instance)
+: pp::Instance (instance),
+  file_thread (this)
 {
-public:
-  // The constructor creates the plugin-side instance.
-  // @param[in] instance the handle to the browser-side plugin instance.
-  explicit BibleditInstance (PP_Instance instance) : pp::Instance (instance)
-  {
-    pepper_instance = this;
-    main_worker_thread = new thread (main_worker_thread_function);
-  }
-  
-  virtual ~BibleditInstance ()
-  {
-    main_worker_thread->join ();
-  }
-  
-  // Handler for messages coming in from the browser via postMessage().
-  // The @a var_message can contain be any pp:Var type; for example int, string Array or Dictionary.
-  // Please see the pp:Var documentation for more details.
-  // @param[in] var_message The message posted by the browser.
-  virtual void HandleMessage (const pp::Var& var_message)
-  {
-    // Make this function handle the incoming message.
-    // Ignore the message if it is not a string.
-    if (!var_message.is_string()) return;
-    // Get the string message and compare it to "hello".
-    string message = var_message.AsString ();
-    if (message == "hello") {
-      // If it matches, send a response back to JavaScript.
-      pp::Var var_reply ("Hello from native Bibledit");
-      PostMessage (var_reply);
-    }
-  }
-};
+  pepper_instance = this;
+  bibledit_instance = this;
+  file_thread.Start();
+  callback_factory = new pp::CompletionCallbackFactory <BibleditInstance> (bibledit_instance);
+  main_worker_thread = new thread (main_worker_thread_function);
+}
 
 
-// The Module class.
-// The browser calls the CreateInstance() method to create an instance of your NaCl module on the web page.
-// The browser creates a new instance for each <embed> tag with type="application/x-pnacl".
-class BibleditModule : public pp::Module {
-public:
-  BibleditModule () : pp::Module ()
-  {
-  }
+BibleditInstance::~BibleditInstance ()
+{
+  file_thread.Join();
+  main_worker_thread->join ();
+}
 
-  virtual ~BibleditModule ()
-  {
+
+// Handler for messages coming in from the browser via postMessage().
+// The @a var_message can contain be any pp:Var type; for example int, string Array or Dictionary.
+// Please see the pp:Var documentation for more details.
+// @param[in] var_message The message posted by the browser.
+void BibleditInstance::HandleMessage (const pp::Var& var_message)
+{
+  // Make this function handle the incoming message.
+  // Ignore the message if it is not a string.
+  if (!var_message.is_string()) return;
+  // Get the string message and compare it to "hello".
+  string message = var_message.AsString ();
+  if (message == "hello") {
+    // If it matches, send a response back to JavaScript.
+    pp::Var var_reply ("Hello from native Bibledit");
+    PostMessage (var_reply);
   }
-  
-  // Create and return a BibleditInstance object.
-  // @param[in] instance The browser-side instance.
-  // @return the plugin-side instance.
-  virtual pp::Instance* CreateInstance (PP_Instance instance)
-  {
-    return new BibleditInstance (instance);
-  }
-};
+}
+
+
+void BibleditInstance::ListCallback (int32_t result, const std::vector<pp::DirectoryEntry>& entries, pp::FileRef)
+{
+  cout << "ListCallback" << endl; // Todo
+}
+
+
+BibleditModule::BibleditModule ()
+{
+}
+
+
+BibleditModule::~BibleditModule ()
+{
+}
+
+
+// Create and return a BibleditInstance object.
+// @param[in] instance The browser-side instance.
+// @return the plugin-side instance.
+pp::Instance* BibleditModule::CreateInstance (PP_Instance instance)
+{
+  return new BibleditInstance (instance);
+}
 
 
 namespace pp {
