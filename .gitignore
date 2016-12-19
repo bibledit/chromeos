@@ -10,3 +10,5 @@
 *.o
 
 *.stamp
+
+native/pnacl/Release/bibledit.nmf

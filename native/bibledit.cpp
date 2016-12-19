@@ -20,7 +20,7 @@
 #include "bibledit.h"
 
 
-#define __STDC_LIMIT_MACROS
+//#define __STDC_LIMIT_MACROS
 
 
 #include "ppapi/c/pp_stdint.h"
