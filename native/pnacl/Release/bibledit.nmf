@@ -1,0 +1,12 @@
+{
+  "program": {
+    "portable": {
+      "pnacl-translate": {
+        "url": "bibledit.pexe"
+      },
+      "pnacl-debug": {
+        "url": "bibledit_unstripped.bc"
+      }
+    }
+  }
+}
