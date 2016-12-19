@@ -45,7 +45,7 @@
 
 pp::Instance * pepper_instance;
 pp::FileSystem * pepper_file_system; // Null on failure.
-thread * bibledit_worker_thread;
+thread * main_worker_thread;
 
 
 void pepper_file_save (const string& file_name, const string& file_contents)
@@ -243,7 +243,7 @@ void pepper_file_list (const string& dir_name)
 }
 
 
-void worker_thread_function ()
+void main_worker_thread_function ()
 {
   cout << "Thread start" << endl;
   
@@ -292,12 +292,12 @@ public:
   explicit BibleditInstance (PP_Instance instance) : pp::Instance (instance)
   {
     pepper_instance = this;
-    bibledit_worker_thread = new thread (worker_thread_function);
+    main_worker_thread = new thread (main_worker_thread_function);
   }
   
   virtual ~BibleditInstance ()
   {
-    bibledit_worker_thread->join ();
+    main_worker_thread->join ();
   }
   
   // Handler for messages coming in from the browser via postMessage().
