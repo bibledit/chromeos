@@ -187,23 +187,6 @@ void ListCallback(int32_t result,
 }
 
 
-void pepper_file_list (const string& dir_name)
-{
-  if (!pepper_file_system) {
-    cerr << "File system is not open "  << PP_ERROR_FAILED << endl;
-    return;
-  }
-  
-  pp::FileRef ref (* pepper_file_system, dir_name.c_str());
-  
-  pp::CompletionCallbackFactory <pp::Instance> callback_factory (pepper_instance);
-  
-  // Pass ref along to keep it alive.
-  //ref.ReadDirectoryEntries (callback_factory.NewCallbackWithOutput (ListCallback, ref));
-  
-}
-
-
 void pepper_file_make_dir (const string& dir_name)
 {
   if (!pepper_file_system) {
@@ -243,7 +226,7 @@ void pepper_file_rename (const string& old_name, const string& new_name)
 struct PP_CompletionCallback callback;
 
 
-void pepper_file_list_c (const string& dir_name)
+void pepper_file_list (const string& dir_name)
 {
   if (!pepper_file_system) {
     cerr << "File system is not open "  << PP_ERROR_FAILED << endl;
@@ -252,11 +235,12 @@ void pepper_file_list_c (const string& dir_name)
   
   pp::FileRef ref (* pepper_file_system, dir_name.c_str());
   
+  pp::CompletionCallbackFactory <pp::Instance> callback_factory (pepper_instance);
+  
+  // Pass ref along to keep it alive.
+  //ref.ReadDirectoryEntries (callback_factory.NewCallbackWithOutput (ListCallback, ref));
   
 }
-
-
-
 
 
 void worker_thread_function ()
@@ -281,6 +265,7 @@ void worker_thread_function ()
   }
   pepper_file_save ("/filename.txt", "Contents for the text file");
   pepper_file_load ("/filename.txt");
+  pepper_file_list ("/");
   pepper_file_delete ("/filename.txt");
   
   
