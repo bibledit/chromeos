@@ -17,12 +17,44 @@
  */
 
 
+#include <assert.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <map>
+#include <cstring>
+#include <algorithm>
+#include <set>
+#include <chrono>
+#include <iomanip>
+#include <stdexcept>
+#include <thread>
+#include <cmath>
+#include <mutex>
+#include <numeric>
+#include <random>
+#include <limits>
+#include <typeinfo>
+
+
+using namespace std;
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-  
-  int dummy ();
-  
 #ifdef __cplusplus
 }
 #endif
+
+
+void bibledit_worker_thread_function ();
+void post_message_to_browser (const string& message);

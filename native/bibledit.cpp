@@ -19,15 +19,9 @@
 #include "bibledit.h"
 
 
-#include <assert.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-
 #include "ppapi/c/pp_errors.h"
 #include "ppapi/c/pp_module.h"
+#include "ppapi/c/pp_errors.h"
 #include "ppapi/c/ppp.h"
 // Include the interface headers.
 // PPB APIs are implemented in the "B" (browser) and describe calls from the module to the browser.
@@ -36,32 +30,10 @@
 #include "ppapi/c/ppb_input_event.h"
 #include "ppapi/c/ppb_messaging.h"
 #include "ppapi/c/ppb_var.h"
+#include "ppapi/c/ppb_file_system.h"
 #include "ppapi/c/ppp_instance.h"
 #include "ppapi/c/ppp_input_event.h"
 #include "ppapi/c/ppp_messaging.h"
-
-
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <map>
-#include <cstring>
-#include <algorithm>
-#include <set>
-#include <chrono>
-#include <iomanip>
-#include <stdexcept>
-#include <thread>
-#include <cmath>
-#include <mutex>
-#include <numeric>
-#include <random>
-#include <limits>
-
-
-using namespace std;
 
 
 #ifndef INT32_MAX
@@ -75,11 +47,13 @@ static PPB_InputEvent * ppb_input_event = NULL;
 static PPB_GetInterface ppb_get_interface = NULL;
 static PPB_Messaging* ppb_messaging = NULL;
 static PPB_Var* ppb_var = NULL;
+PPB_FileSystem * ppb_file_system = NULL;
+PP_Resource pp_file_system;
 thread * bibledit_worker_thread;
 
 
-// Post a message to JavaScript.
-static void PostMessage (const string& message)
+// Post a message to the browser's JavaScript.
+void post_message_to_browser (const string& message)
 {
   struct PP_Var var = ppb_var->VarFromUtf8 (message.c_str (), message.size ());
   ppb_messaging->PostMessage (pp_instance, var);
@@ -90,6 +64,7 @@ static void PostMessage (const string& message)
 static PP_Bool Instance_DidCreate (PP_Instance instance, uint32_t argc, const char* argn [], const char* argv [])
 {
   pp_instance = instance;
+  bibledit_worker_thread = new thread (bibledit_worker_thread_function);
   return PP_TRUE;
 }
 
@@ -97,6 +72,7 @@ static PP_Bool Instance_DidCreate (PP_Instance instance, uint32_t argc, const ch
 static void Instance_DidDestroy (PP_Instance instance)
 {
   // Never called.
+  bibledit_worker_thread->join ();
 }
 
 
@@ -121,18 +97,19 @@ static PP_Bool Instance_HandleDocumentLoad (PP_Instance instance, PP_Resource ur
 
 static void Messaging_HandleMessage (PP_Instance instance, struct PP_Var message)
 {
+  // Get the string from the message.
   uint32_t length;
   const char* str = ppb_var->VarToUtf8 (message, &length);
   if (str == NULL) {
     return;
   }
-  // Newly allocated $new_str.
-  // $str is NOT NULL-terminated. Copy using memcpy.
+  // Copy it to a newly allocated not NULL-terminated string.
   char* new_str = (char *) malloc (length + 1);
   memcpy (new_str, str, length);
   new_str [length] = 0;
- 
-  PostMessage (new_str);
+  // Echo it back to the browser.
+  post_message_to_browser (new_str);
+  // Free memory.
   free (new_str);
 }
 
@@ -184,11 +161,6 @@ PP_EXPORT void PPP_ShutdownModule ()
   // Never called.
 }
 
-
-/*
-// Pointer to the file system. Is null on failure.
-pp::FileSystem * pepper_file_system;
-*/
 
 /*
 void pepper_file_save (const string& file_name, const string& file_contents)
@@ -382,13 +354,12 @@ void pepper_file_rename (const string& old_name, const string& new_name)
   cout << "Rename success" << endl;
 }
 */
- 
+
 
 void bibledit_worker_thread_function ()
 {
   cout << "Thread start" << endl;
 
-  /*
   // Open the file system on this thread.
   // Since this is the first operation we perform there,
   // and because we do everything on this thread synchronously,
@@ -399,12 +370,16 @@ void bibledit_worker_thread_function ()
   // ~/Library/Application\ Support/Google/Chrome/Default/Storage/ext/<extension-identifier>/def/File\ System/primary
   // File names for operations on this file system should start with a slash ("/").
   // Run $ du -chs to find total disk usage.
-  pepper_file_system = new pp::FileSystem (bibledit_instance, PP_FILESYSTEMTYPE_LOCALPERSISTENT);
-  int result = pepper_file_system->Open (10 * 1024 * 1024 * 1024, pp::BlockUntilComplete());
-  if (result != PP_OK) {
-    pepper_file_system = nullptr;
-    cerr << "Failed to open local persistent file system with error " << result << endl;
+  ppb_file_system = new PPB_FileSystem;
+  pp_file_system = ppb_file_system->Create (pp_instance, PP_FILESYSTEMTYPE_LOCALPERSISTENT);
+  int32_t result = ppb_file_system->Open (pp_file_system, 10 * 1024 * 1024 * 1024, PP_BlockUntilComplete ());
+  if (result != 0) {
+    //pepper_file_system = nullptr;
+    //cerr << "Failed to open local persistent file system with error " << result << endl;
+  } else {
+    //cout << "File system opened" << endl;
   }
+  /*
   pepper_file_save ("/filename.txt", "Contents for the text file");
   pepper_file_load ("/filename.txt");
   pepper_file_delete ("/filename.txt");
