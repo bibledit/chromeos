@@ -88,6 +88,8 @@ using namespace std;
 
 #include "nacl_io/ioctl.h"
 #include "nacl_io/nacl_io.h"
+#include "nacl_io/osdirent.h"
+#include "nacl_io/osinttypes.h"
 
 
 #ifdef __cplusplus
@@ -117,8 +119,6 @@ public:
   explicit BibleditInstance (PP_Instance instance);
   virtual ~BibleditInstance ();
   virtual void HandleMessage (const pp::Var& var_message);
-  void ListCallback (int32_t result, const std::vector<pp::DirectoryEntry>& entries, pp::FileRef);
-  pp::SimpleThread file_thread;
 };
 
 
