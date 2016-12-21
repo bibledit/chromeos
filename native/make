@@ -6,6 +6,8 @@ export NACL_SDK_ROOT=~/scr/nacl_sdk/pepper_49
 # Clean previous output.
 FILE=pnacl/Release/bibledit.pexe
 [[ -e $FILE ]] && rm $FILE
+FILE=pnacl/Release/bibledit.nmf
+[[ -e $FILE ]] && rm $FILE
 
 # Build through Makefile.
 make $@
@@ -15,7 +17,5 @@ FILE=bibledit.pexe
 [[ -e $FILE ]] && rm $FILE
 FILE=pnacl/Release/bibledit.pexe
 [[ -e $FILE ]] && cp $FILE .
-FILE=pnacl/Release/bibledit.nmf
-[[ -e $FILE ]] && rm $FILE
 FILE=pnacl/Release/bibledit.nmf
 [[ -e $FILE ]] && cp $FILE .
