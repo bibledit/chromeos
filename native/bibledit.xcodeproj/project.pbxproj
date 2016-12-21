@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		CA038ED31E07F4430080DA4A /* bibledit-c-api.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "bibledit-c-api.cpp"; sourceTree = "<group>"; };
-		CA038ED41E07F4620080DA4A /* bibledit fileio-cpp-api.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "bibledit fileio-cpp-api.cpp"; sourceTree = "<group>"; };
 		CA2444081E057F240005C647 /* bibledit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bibledit.h; sourceTree = "<group>"; };
 		CA284C171E0290B800AE3B74 /* make */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = make; sourceTree = "<group>"; };
 		CAA5EB0D1E02C29300EAAEF5 /* develop.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = develop.txt; sourceTree = "<group>"; };
@@ -53,8 +51,6 @@
 			isa = PBXGroup;
 			children = (
 				CAAC81381E0282FB00A44986 /* background.js */,
-				CA038ED31E07F4430080DA4A /* bibledit-c-api.cpp */,
-				CA038ED41E07F4620080DA4A /* bibledit fileio-cpp-api.cpp */,
 				CA284C171E0290B800AE3B74 /* make */,
 				CAAC81391E02830400A44986 /* bibledit.cpp */,
 				CA2444081E057F240005C647 /* bibledit.h */,

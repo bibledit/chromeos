@@ -19,7 +19,9 @@ TARGET = bibledit
 
 include $(NACL_SDK_ROOT)/tools/common.mk
 
-LIBS = ppapi_cpp ppapi pthread
+CHROME_ARGS += --allow-nacl-socket-api=localhost
+
+LIBS = nacl_io ppapi_cpp ppapi pthread
 
 CFLAGS = -Wall -std=gnu++11
 LDFLAGS = -std=gnu++11

@@ -45,6 +45,9 @@ BibleditInstance * bibledit_instance = nullptr;
 pp::CompletionCallbackFactory <BibleditInstance> * callback_factory = nullptr;
 
 
+PP_Instance g_instance = 0;
+PPB_GetInterface g_get_browser_interface = NULL;
+
 
 void pepper_file_save (const string& file_name, const string& file_contents)
 {
@@ -255,9 +258,29 @@ void main_worker_thread_function ()
 {
   cout << "Thread start" << endl;
   
-  pp::MessageLoop message_loop = pp::MessageLoop ();
-  message_loop.AttachToCurrentThread ();
-  message_loop.Run ();
+  
+  // By default, nacl_io mounts / to pass through to the original NaCl filesystem (which doesn't do much).
+  // Remount it to a memfs filesystem.
+  umount ("/");
+  mount ("", "/", "memfs", 0, "");
+  
+  mount ("",                                       /* source */
+         "/persistent",                            /* target */
+         "html5fs",                                /* filesystemtype */
+         0,                                        /* mountflags */
+         "type=PERSISTENT,expected_size=1048576"); /* data */
+  
+  mount ("",       /* source. Use relative URL */
+         "/http",  /* target */
+         "httpfs", /* filesystemtype */
+         0,        /* mountflags */
+         "");      /* data */
+
+  
+  /*
+   pp::MessageLoop message_loop = pp::MessageLoop ();
+   message_loop.AttachToCurrentThread ();
+   message_loop.Run ();
   
   // Open the file system on this thread.
   // Since this is the first operation we perform there,
@@ -279,8 +302,11 @@ void main_worker_thread_function ()
   pepper_file_load ("/filename.txt");
   pepper_file_list ("/");
   pepper_file_delete ("/filename.txt");
+
+   message_loop.PostQuit (true);
+
+   */
   
-  //message_loop.PostQuit (true);
   cout << "Thread complete" << endl;
 }
 
@@ -293,6 +319,8 @@ BibleditInstance::BibleditInstance (PP_Instance instance)
 {
   pepper_instance = this;
   bibledit_instance = this;
+  g_instance = instance;
+  nacl_io_init_ppapi (instance, g_get_browser_interface);
   file_thread.Start();
   callback_factory = new pp::CompletionCallbackFactory <BibleditInstance> (bibledit_instance);
   main_worker_thread = new thread (main_worker_thread_function);

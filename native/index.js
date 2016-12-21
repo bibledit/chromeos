@@ -58,7 +58,8 @@ function moduleLoadProgress (event) {
     loadPercent = event.loaded / event.total * 100.0;
     loadPercent = parseInt (loadPercent);
     loadPercentString = loadPercent + "%";
-    updateStatus ("Loading " + loadPercentString + " (" + event.loaded + " of " + event.total + " bytes)");
+    //updateStatus ("Loading " + loadPercentString + " (" + event.loaded + " of " + event.total + " bytes)");
+    updateStatus ("Loading " + loadPercentString);
   } else {
     // The total length is not yet known.
     updateStatus ("Loading...");
