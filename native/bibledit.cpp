@@ -63,7 +63,7 @@ void initialize_nacl_io ()
 
   // The persistent file system is slow.
   // Mount it at "/webroot".
-  mkdir ("/persistent", 0777);
+  mkdir ("/webroot", 0777);
   result = mount ("", "/webroot", "html5fs", 0, "type=PERSISTENT,expected_size=10737418240");
   if (result != 0) {
     post_message_to_console (strerror (errno));
