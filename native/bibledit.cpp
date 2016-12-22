@@ -18,6 +18,11 @@
 
 
 #include "bibledit.h"
+#include "ppapi/c/ppp.h"
+#include "ppapi/c/ppb.h"
+#include "ppapi/cpp/var.h"
+#include "ppapi/cpp/module.h"
+#include "ppapi/cpp/instance.h"
 #include "nacl_io/ioctl.h"
 #include "nacl_io/nacl_io.h"
 #include "nacl_io/osdirent.h"
@@ -165,6 +170,33 @@ void main_worker_thread_function ()
 }
 
 
+class BibleditInstance : public pp::Instance
+{
+public:
+  explicit BibleditInstance (PP_Instance instance);
+  virtual ~BibleditInstance ();
+  virtual void HandleMessage (const pp::Var& var_message);
+};
+
+
+class BibleditModule : public pp::Module
+{
+public:
+  BibleditModule ();
+  virtual ~BibleditModule ();
+  virtual pp::Instance* CreateInstance (PP_Instance instance);
+};
+
+
+// The Instance class.
+// One of these exists for each instance of your NaCl module on the web page.
+// The browser will ask the Module object to create a new Instance
+// for each occurrence of the <embed> tag that has these attributes:
+// * src="bibledit.nmf"
+// * type="application/x-pnacl"
+// To communicate with the browser, you must override HandleMessage () to receive messages from the browser,
+// and use PostMessage() to send messages back to the browser.
+// Note that this interface is asynchronous.
 // The constructor creates the plugin-side instance.
 // @param[in] instance the handle to the browser-side plugin instance.
 BibleditInstance::BibleditInstance (PP_Instance instance) : pp::Instance (instance)
@@ -202,6 +234,9 @@ void BibleditInstance::HandleMessage (const pp::Var& var_message)
 }
 
 
+// The Module class.
+// The browser calls the CreateInstance() method to create an instance of your NaCl module on the web page.
+// The browser creates a new instance for each <embed> tag with type="application/x-pnacl".
 BibleditModule::BibleditModule ()
 {
   // Global pointer to the Pepper module.

@@ -59,13 +59,6 @@
 using namespace std;
 
 
-#include "ppapi/c/ppp.h"
-#include "ppapi/c/ppb.h"
-#include "ppapi/cpp/var.h"
-#include "ppapi/cpp/module.h"
-#include "ppapi/cpp/instance.h"
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -73,36 +66,3 @@ extern "C" {
 }
 #endif
 
-
-void worker_thread_function ();
-void post_message_to_browser (const string& message);
-
-
-// The Instance class.
-// One of these exists for each instance of your NaCl module on the web page.
-// The browser will ask the Module object to create a new Instance
-// for each occurrence of the <embed> tag that has these attributes:
-// * src="bibledit.nmf"
-// * type="application/x-pnacl"
-// To communicate with the browser, you must override HandleMessage () to receive messages from the browser,
-// and use PostMessage() to send messages back to the browser.
-// Note that this interface is asynchronous.
-class BibleditInstance : public pp::Instance
-{
-public:
-  explicit BibleditInstance (PP_Instance instance);
-  virtual ~BibleditInstance ();
-  virtual void HandleMessage (const pp::Var& var_message);
-};
-
-
-// The Module class.
-// The browser calls the CreateInstance() method to create an instance of your NaCl module on the web page.
-// The browser creates a new instance for each <embed> tag with type="application/x-pnacl".
-class BibleditModule : public pp::Module
-{
-public:
-  BibleditModule ();
-  virtual ~BibleditModule ();
-  virtual pp::Instance* CreateInstance (PP_Instance instance);
-};
