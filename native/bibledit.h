@@ -60,6 +60,7 @@ using namespace std;
 
 
 void post_message_to_gui (const string & msg);
+void post_message_to_console (const string & msg);
 
 
 #ifdef __cplusplus

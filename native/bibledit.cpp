@@ -53,7 +53,7 @@ vector <string> filter_url_scandir_internal (string folder)
       string name = direntry->d_name;
       if (name.substr (0, 1) == ".") continue;
       files.push_back (name);
-      post_message_to_gui ("Reading file " + name);
+      post_message_to_console ("Reading file " + name);
     }
     closedir (dir);
   }
@@ -109,19 +109,27 @@ void initialize_filesystem ()
   // Initialize nacl_io with PPAPI support.
   nacl_io_init_ppapi (pepper_instance->pp_instance(), pepper_module->Get ()->get_browser_interface());
   
+  // Messages sent to /dev/console0 appear in the app's development console.
+  int result = mount ("", "console0", "dev", 0, "");
+  if (result != 0) {
+    cerr << strerror (errno) << endl;
+  }
+
   // By default, nacl_io mounts "/" to pass through to the original NaCl filesystem.
   // That doesn't do much.
   // Remount it to a memfs filesystem.
-  int result = umount ("/");
+  result = umount ("/");
   if (result != 0) {
-    cerr << strerror (errno) << endl;
+    post_message_to_console (strerror (errno));
   }
 
-  result = mount ("", "/", "memfs", 0, ""); // Todo for /tmp for extra speed.
+  // The memory file system is lightning fast.
+  result = mount ("", "/", "memfs", 0, "");
   if (result != 0) {
-    cerr << strerror (errno) << endl;
+    post_message_to_console (strerror (errno));
   }
 
+  // The persistent file system is slow.
   mkdir ("/persistent", 0777);
   result = mount ("",                                           // source
                   "/persistent",                                // target
@@ -129,7 +137,7 @@ void initialize_filesystem ()
                   0,                                            // mountflags
                   "type=PERSISTENT,expected_size=10737418240"); // data
   if (result != 0) {
-    cerr << strerror (errno) << endl;
+    post_message_to_console (strerror (errno));
   }
   
   result = mount ("",       /* source. Use relative URL */
@@ -138,36 +146,29 @@ void initialize_filesystem ()
                   0,        /* mountflags */
                   "");      /* data */
   if (result != 0) {
-    cerr << strerror (errno) << endl;
+    post_message_to_console (strerror (errno));
   }
-
 }
 
 
 void main_worker_thread_function ()
 {
-  cout << "Thread start" << endl;
-  
   initialize_filesystem ();
-  
+
   string directory = "/persistent";
   //directory = "/";
   for (unsigned int i = 0; i < 10; i++) {
     string file = directory + "/file" + to_string (i) + ".txt";
     filter_url_file_put_contents (file, string (1024 * 1024, 'X'));
     string contents = filter_url_file_get_contents (file);
-    post_message_to_gui (file + ": " + to_string (contents.size ()));
-    
+    post_message_to_console (file + ": " + to_string (contents.size ()));
   }
   
   vector <string> files = filter_url_scandir (directory);
-  for (auto file : files) cout << file << endl;
-
+  for (auto file : files) post_message_to_console ("Found: " + file);
   
   // Remove interception for POSIX C-library function and release associated resources.
   nacl_io_uninit ();
-
-  cout << "Thread complete" << endl;
 }
 
 
@@ -276,4 +277,16 @@ void post_message_to_gui (const string & msg)
 {
   pp::Var var_reply (msg);
   pepper_instance->PostMessage (var_reply);
+}
+
+
+void post_message_to_console (const string & msg)
+{
+  try {
+    ofstream file;
+    file.open ("/dev/console0");
+    file << msg;
+    file.close ();
+  } catch (...) {
+  }
 }
