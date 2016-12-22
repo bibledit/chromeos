@@ -27,6 +27,7 @@
 #include "ppapi/cpp/module.h"
 #include "ppapi/cpp/instance.h"
 #include "nacl_io/nacl_io.h"
+// BIBLEDIT_LIBRARY_INCLUDES
 
 
 pp::Instance * pepper_instance = nullptr;

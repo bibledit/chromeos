@@ -1,25 +1,126 @@
 #!/bin/bash
 
 
+# Prerequisites:
+# Chrome OS NaCL SDK for Mac OS X.
+
+
 echo Building Bibledit Chrome App
 
 
+# Change to the directory where the script is located.
 pushd `dirname $0` > /dev/null
 SCRIPTPATH=`pwd`
 popd > /dev/null
+# ~/dev/chromeos/native
 echo $SCRIPTPATH
+cd $SCRIPTPATH
+
+
+# Build everything in a temporal location, so there's no clutter in the source repository.
 BUILDPATH=/tmp/bibledit-chromeapp
 
 
+# Copy the Bibledit library source to the temporal location and clean it.
 mkdir -p $BUILDPATH
-rsync -av --delete ../../bibledit/lib/* $BUILDPATH
+rsync -av --delete ../../bibledit/lib/ $BUILDPATH
 cd $BUILDPATH
 ./configure
 make distclean
+
+
+# Build several databases for inclusion with the Chrome OS app package.
+# The reason for this is that building them on Chrome OS takes a lot of time during the setup phase.
+# To include pre-built databases, that will speed up the setup phase of Bibledit on Chrome OS.
+# This gives a better user experience.
 ./configure
+make --jobs=`sysctl -n hw.logicalcpu_max`
+./generate . locale
+./generate . mappings
+./generate . versifications
 
 
-# sed -i.bak '/111androidkey111/d' ant.properties
-# sed -i.bak '/123bibledit321/d' ant.properties
-# echo key.store.password=xxxxx >> ant.properties
-# echo key.alias.password=xxxxx >> ant.properties
+# Clean the built sources.
+make distclean
+
+
+# Configure it for a Chrome App.
+./configure --enable-chromeapp
+
+
+# Copy the Chrome OS app source to the build location.
+cp $SCRIPTPATH/* .
+
+
+# Clean sources up.
+rm aclocal.m4
+rm AUTHORS
+rm -r autom4te.cache
+rm bibledit
+rm ChangeLog
+rm compile
+rm config/local.server.key
+rm config.guess
+rm config.h.in
+rm config.sub
+rm configure
+rm configure.ac
+rm depcomp
+rm dev
+rm DEVELOP
+rm -r executable
+rm INSTALL
+rm install-sh
+rm Makefile.in
+rm missing
+rm NEWS
+rm reconfigure
+rm -rf sources/hebrewlexicon
+rm -rf sources/morphgnt
+rm -rf sources/morphhb
+rm -rf sources/sblgnt
+rm sources/oshb.xml.gz
+rm -rf unittests
+rm valgrind
+rm -r xcode
+
+
+
+exit
+
+
+
+
+# Remove some data so that the .apk does not exceed 50 Mbytes - the limit Google Play puts on it.
+# Update: The new limit is now 100 Mbytes.
+
+
+# Android does not provide 'stoi' in C++.
+sed -i.bak '/HAVE_STOI/d' config.h
+# No libsword.
+sed -i.bak '/HAVE_SWORD/d' config.h
+# No file-upload possible from web view.
+sed -i.bak '/CONFIG_ENABLE_FILE_UPLOAD/d' config/config.h
+# Android does not need BSD memory profiling calls.
+sed -i.bak '/HAVE_MACH_MACH/d' config.h
+# Cleanup
+rm config.h.bak
+rm config/config.h.bak
+
+
+# The following command saves all source files from Makefile.am to file.
+# It uses several steps to obtain the result:
+# * Obtain source files between the correct patterns.
+# * Remove first line.
+# * Remove last line.
+# * Remove tabs.
+# * Remove new lines.
+# * Remove backslashes.
+sed -n "/libbibledit_a_SOURCES/,/bin_PROGRAMS/p" Makefile.am | tail -n +2 | sed '$d' | strings | tr -d '\n' | sed 's/\\//g' > sources.txt
+
+
+# Create Android.mk Makefile from Android.am.
+sed "s|SOURCEFILES|$(cat sources.txt)|" Android.am > Android.mk
+rm sources.txt
+
+
