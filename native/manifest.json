@@ -4,14 +4,14 @@
   "description": "Bible editor",
   "version": "1.0.100",
   "icons": {
-    "16":  "pix/bibledit16.png",
-    "24":  "pix/bibledit24.png",
-    "32":  "pix/bibledit32.png",
-    "48":  "pix/bibledit48.png",
-    "64":  "pix/bibledit64.png",
-    "128": "pix/bibledit128.png",
-    "256": "pix/bibledit256.png",
-    "512": "pix/bibledit512.png"
+    "16":  "bibledit16.png",
+    "24":  "bibledit24.png",
+    "32":  "bibledit32.png",
+    "48":  "bibledit48.png",
+    "64":  "bibledit64.png",
+    "128": "bibledit128.png",
+    "256": "bibledit256.png",
+    "512": "bibledit512.png"
   },
   "app": {
     "background": {

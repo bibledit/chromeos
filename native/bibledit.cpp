@@ -146,7 +146,7 @@ void main_worker_thread_function ()
   
   string directory = "/persistent";
   //directory = "/";
-  for (unsigned int i = 0; i < 1000; i++) {
+  for (unsigned int i = 0; i < 100; i++) {
     string file = directory + "/file" + to_string (i) + ".txt";
     filter_url_file_put_contents (file, string (1024 * 1024, 'X'));
     string contents = filter_url_file_get_contents (file);
