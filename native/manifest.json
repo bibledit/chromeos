@@ -3,6 +3,7 @@
   "name": "Bibledit",
   "description": "Bible editor",
   "version": "1.0.100",
+  "offline_enabled": true,
   "icons": {
     "16":  "bibledit16.png",
     "24":  "bibledit24.png",
@@ -19,6 +20,18 @@
     },
     "persistent": false
   },
-  "permissions": ["storage", "unlimitedStorage"],
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    {
+      "socket": [
+        "tcp-listen:*:*",
+        "tcp-connect",
+        "resolve-host",
+        "udp-bind:*:*",
+        "udp-send-to:*:*"
+      ]
+    }
+  ],
   "minimum_chrome_version": "28"
 }

@@ -9,6 +9,10 @@
 /* Begin PBXFileReference section */
 		CA2444081E057F240005C647 /* bibledit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bibledit.h; sourceTree = "<group>"; };
 		CA284C171E0290B800AE3B74 /* make */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = make; sourceTree = "<group>"; };
+		CA34D9941E0BF31500CB3FC4 /* webserver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = webserver.cpp; sourceTree = "<group>"; };
+		CA34D9951E0BF31500CB3FC4 /* webserver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = webserver.h; sourceTree = "<group>"; };
+		CA34D9961E0BF31C00CB3FC4 /* io.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = io.c; sourceTree = "<group>"; };
+		CA34D9971E0BF31C00CB3FC4 /* io.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = io.h; sourceTree = "<group>"; };
 		CAA5EB0D1E02C29300EAAEF5 /* develop.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = develop.txt; sourceTree = "<group>"; };
 		CAAC81381E0282FB00A44986 /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = background.js; sourceTree = "<group>"; };
 		CAAC81391E02830400A44986 /* bibledit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = bibledit.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -37,6 +41,10 @@
 				CAAC81401E02830B00A44986 /* Makefile */,
 				CAAC81411E02830B00A44986 /* manifest.json */,
 				CAAC814C1E02831100A44986 /* README.md */,
+				CA34D9941E0BF31500CB3FC4 /* webserver.cpp */,
+				CA34D9951E0BF31500CB3FC4 /* webserver.h */,
+				CA34D9961E0BF31C00CB3FC4 /* io.c */,
+				CA34D9971E0BF31C00CB3FC4 /* io.h */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";

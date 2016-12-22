@@ -17,6 +17,10 @@
  */
 
 
+#ifndef INCLUDED_BIBLEDIT_H
+#define INCLUDED_BIBLEDIT_H
+
+
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
@@ -70,3 +74,6 @@ extern "C" {
 }
 #endif
 
+
+
+#endif

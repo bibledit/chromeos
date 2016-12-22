@@ -27,6 +27,7 @@
 #include "nacl_io/nacl_io.h"
 #include "nacl_io/osdirent.h"
 #include "nacl_io/osinttypes.h"
+#include "webserver.h"
 
 
 #define __STDC_LIMIT_MACROS
@@ -166,6 +167,10 @@ void main_worker_thread_function ()
   
   vector <string> files = filter_url_scandir (directory);
   for (auto file : files) post_message_to_console ("Found: " + file);
+
+  cout << "Start server" << endl;
+  http_server ();
+  cout << "End server" << endl;
   
   // Remove interception for POSIX C-library function and release associated resources.
   nacl_io_uninit ();
