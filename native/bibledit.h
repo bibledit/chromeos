@@ -21,59 +21,12 @@
 #define INCLUDED_BIBLEDIT_H
 
 
-#include <assert.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <limits.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-#include <sys/mount.h>
-#include <sys/param.h>
-#include <sys/select.h>
-#include <sys/stat.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <stdarg.h>
-
-
-#include <iostream>
-#include <sstream>
-#include <fstream>
 #include <string>
-#include <vector>
-#include <map>
-#include <cstring>
-#include <algorithm>
-#include <set>
-#include <chrono>
-#include <iomanip>
-#include <stdexcept>
-#include <thread>
-#include <cmath>
-#include <mutex>
-#include <numeric>
-#include <random>
-#include <limits>
-#include <typeinfo>
-
-
 using namespace std;
 
 
 void post_message_to_gui (const string & msg);
 void post_message_to_console (const string & msg);
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-#ifdef __cplusplus
-}
-#endif
-
 
 
 #endif

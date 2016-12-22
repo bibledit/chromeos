@@ -114,9 +114,20 @@ function moduleDidCrash () {
 
 // The "message" event handler.
 // This handler is fired when the NaCl module posts a message to the browser
-// by calling PPB_Messaging.PostMessage() in C or pp::Instance.PostMessage() in C++.
+// by calling pp::Instance.PostMessage().
 function handleMessage (message_event) {
-  updateStatus (message_event.data);
+  var msg = message_event.data;
+  if (msg == "openbrowser") {
+    var url = "http://localhost:8080";
+    window.open (url);
+  } else if (msg == "requestkeepawake") {
+    //chrome.power.requestKeepAwake ("system");
+    chrome.power.requestKeepAwake ("display");
+  } else if (msg == "releasekeepawake") {
+    chrome.power.releaseKeepAwake ();
+  } else {
+    updateStatus (msg);
+  }
 }
 
 

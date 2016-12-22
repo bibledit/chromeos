@@ -18,24 +18,15 @@
 
 
 #include "bibledit.h"
-#include "ppapi/c/ppp.h"
-#include "ppapi/c/ppb.h"
+#include <sys/stat.h>
+#include <sys/mount.h>
+#include <thread>
+#include <iostream>
+#include <fstream>
 #include "ppapi/cpp/var.h"
 #include "ppapi/cpp/module.h"
 #include "ppapi/cpp/instance.h"
-#include "nacl_io/ioctl.h"
 #include "nacl_io/nacl_io.h"
-#include "nacl_io/osdirent.h"
-#include "nacl_io/osinttypes.h"
-#include "webserver.h"
-
-
-#define __STDC_LIMIT_MACROS
-
-
-#ifndef INT32_MAX
-#define INT32_MAX (0x7FFFFFFF)
-#endif
 
 
 pp::Instance * pepper_instance = nullptr;
@@ -43,74 +34,12 @@ pp::Module * pepper_module = nullptr;
 thread * main_worker_thread = nullptr;
 
 
-vector <string> filter_url_scandir_internal (string folder)
+void initialize_nacl_io ()
 {
-  vector <string> files;
+  // Initialize nacl_io (NaCl IO) with PPAPI support.
+  nacl_io_init_ppapi (pepper_instance->pp_instance (), pepper_module->Get ()->get_browser_interface ());
   
-  DIR * dir = opendir (folder.c_str());
-  if (dir) {
-    struct dirent * direntry;
-    while ((direntry = readdir (dir)) != NULL) {
-      string name = direntry->d_name;
-      if (name.substr (0, 1) == ".") continue;
-      files.push_back (name);
-      post_message_to_console ("Reading file " + name);
-    }
-    closedir (dir);
-  }
-  sort (files.begin(), files.end());
-  
-  // Remove . and ..
-  //files = filter_string_array_diff (files, {".", ".."});
-  
-  return files;
-}
-
-
-vector <string> filter_url_scandir (string folder)
-{
-  vector <string> files = filter_url_scandir_internal (folder);
-  //files = filter_string_array_diff (files, {"gitflag"});
-  return files;
-}
-
-
-string filter_url_file_get_contents (string filename)
-{
-  //if (!file_or_dir_exists(filename)) return "";
-  try {
-    ifstream ifs(filename.c_str(), ios::in | ios::binary | ios::ate);
-    streamoff filesize = ifs.tellg();
-    if (filesize == 0) return "";
-    ifs.seekg(0, ios::beg);
-    vector <char> bytes((int)filesize);
-    ifs.read(&bytes[0], (int)filesize);
-    return string(&bytes[0], (int)filesize);
-  }
-  catch (...) {
-    return "";
-  }
-}
-
-
-void filter_url_file_put_contents (string filename, string contents)
-{
-  try {
-    ofstream file;
-    file.open(filename, ios::binary | ios::trunc);
-    file << contents;
-    file.close ();
-  } catch (...) {
-  }
-}
-
-
-void initialize_filesystem ()
-{
-  // Initialize nacl_io with PPAPI support.
-  nacl_io_init_ppapi (pepper_instance->pp_instance(), pepper_module->Get ()->get_browser_interface());
-  
-  // Messages sent to /dev/console0 appear in the app's development console.
+  // Messages sent to /dev/console0 appear in the app's Chrome development console.
   int result = mount ("", "console0", "dev", 0, "");
   if (result != 0) {
     cerr << strerror (errno) << endl;
@@ -125,74 +54,49 @@ void initialize_filesystem ()
   }
 
   // The memory file system is lightning fast.
+  // Use it for fast volatile storage.
   result = mount ("", "/", "memfs", 0, "");
   if (result != 0) {
     post_message_to_console (strerror (errno));
   }
 
   // The persistent file system is slow.
+  // Mount it at "/webroot".
   mkdir ("/persistent", 0777);
-  result = mount ("",                                           // source
-                  "/persistent",                                // target
-                  "html5fs",                                    // filesystemtype
-                  0,                                            // mountflags
-                  "type=PERSISTENT,expected_size=10737418240"); // data
+  result = mount ("", "/webroot", "html5fs", 0, "type=PERSISTENT,expected_size=10737418240");
   if (result != 0) {
     post_message_to_console (strerror (errno));
   }
   
-  result = mount ("",       /* source. Use relative URL */
-                  "/http",  /* target */
-                  "httpfs", /* filesystemtype */
-                  0,        /* mountflags */
-                  "");      /* data */
+  // The files in the app package are accessible via http (using the URLLoader API).
+  // Alternatively you can use nacl_io to expose the http resources via the POSIX filesystem API.
+  // For example:  mount("/", "/mnt/http", "httpfs", 0, "");
+  // The files in your package can then be access via open/fopen of "/mnt/http/<filename>".
+  result = mount ("", "/http", "httpfs", 0, "");
   if (result != 0) {
     post_message_to_console (strerror (errno));
   }
 }
 
 
-void main_worker_thread_function ()
+void destroy_nacl_io ()
 {
-  initialize_filesystem ();
-
-  string directory = "/persistent";
-  //directory = "/";
-  for (unsigned int i = 0; i < 10; i++) {
-    string file = directory + "/file" + to_string (i) + ".txt";
-    filter_url_file_put_contents (file, string (1024 * 1024, 'X'));
-    string contents = filter_url_file_get_contents (file);
-    post_message_to_console (file + ": " + to_string (contents.size ()));
-  }
-  
-  vector <string> files = filter_url_scandir (directory);
-  for (auto file : files) post_message_to_console ("Found: " + file);
-
-  cout << "Start server" << endl;
-  http_server ();
-  cout << "End server" << endl;
-  
   // Remove interception for POSIX C-library function and release associated resources.
   nacl_io_uninit ();
 }
 
 
-class BibleditInstance : public pp::Instance
+void main_worker_thread_function ()
 {
-public:
-  explicit BibleditInstance (PP_Instance instance);
-  virtual ~BibleditInstance ();
-  virtual void HandleMessage (const pp::Var& var_message);
-};
-
-
-class BibleditModule : public pp::Module
-{
-public:
-  BibleditModule ();
-  virtual ~BibleditModule ();
-  virtual pp::Instance* CreateInstance (PP_Instance instance);
-};
+  initialize_nacl_io ();
+  
+  post_message_to_gui ("openbrowser");
+  post_message_to_gui ("Bibledit ready");
+  
+  // BIBLEDIT_LIBRARY_CALLS
+  
+  destroy_nacl_io ();
+}
 
 
 // The Instance class.
@@ -206,6 +110,15 @@ public:
 // Note that this interface is asynchronous.
 // The constructor creates the plugin-side instance.
 // @param[in] instance the handle to the browser-side plugin instance.
+class BibleditInstance : public pp::Instance
+{
+public:
+  explicit BibleditInstance (PP_Instance instance);
+  virtual ~BibleditInstance ();
+  virtual void HandleMessage (const pp::Var& var_message);
+};
+
+
 BibleditInstance::BibleditInstance (PP_Instance instance) : pp::Instance (instance)
 {
   // Global pointer to the Pepper instance.
@@ -235,7 +148,7 @@ void BibleditInstance::HandleMessage (const pp::Var& var_message)
   string message = var_message.AsString ();
   if (message == "hello") {
     // If it matches, send a response back to JavaScript.
-    pp::Var var_reply ("Hello from native Bibledit");
+    pp::Var var_reply ("Hello");
     PostMessage (var_reply);
   }
 }
@@ -244,6 +157,15 @@ void BibleditInstance::HandleMessage (const pp::Var& var_message)
 // The Module class.
 // The browser calls the CreateInstance() method to create an instance of your NaCl module on the web page.
 // The browser creates a new instance for each <embed> tag with type="application/x-pnacl".
+class BibleditModule : public pp::Module
+{
+public:
+  BibleditModule ();
+  virtual ~BibleditModule ();
+  virtual pp::Instance* CreateInstance (PP_Instance instance);
+};
+
+
 BibleditModule::BibleditModule ()
 {
   // Global pointer to the Pepper module.
@@ -278,6 +200,7 @@ namespace pp {
 }
 
 
+// Post a message to the app's window.
 void post_message_to_gui (const string & msg)
 {
   pp::Var var_reply (msg);
@@ -285,6 +208,7 @@ void post_message_to_gui (const string & msg)
 }
 
 
+// Post a message to the app's development console.
 void post_message_to_console (const string & msg)
 {
   try {
