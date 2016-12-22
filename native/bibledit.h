@@ -59,37 +59,11 @@
 using namespace std;
 
 
-#include "ppapi/c/pp_instance.h"
-#include "ppapi/c/pp_var.h"
-#include "ppapi/c/pp_errors.h"
-#include "ppapi/c/pp_module.h"
-
 #include "ppapi/c/ppp.h"
-#include "ppapi/c/ppp_instance.h"
-#include "ppapi/c/ppp_messaging.h"
-
 #include "ppapi/c/ppb.h"
-#include "ppapi/c/ppb_instance.h"
-#include "ppapi/c/ppb_messaging.h"
-#include "ppapi/c/ppb_var.h"
-#include "ppapi/c/ppb_var_array.h"
-#include "ppapi/c/ppb_var_dictionary.h"
-
-
-#include "ppapi/cpp/instance.h"
 #include "ppapi/cpp/var.h"
 #include "ppapi/cpp/module.h"
-#include "ppapi/cpp/directory_entry.h"
-
-
-#include "ppapi/utility/completion_callback_factory.h"
-#include "ppapi/utility/threading/simple_thread.h"
-
-
-#include "nacl_io/ioctl.h"
-#include "nacl_io/nacl_io.h"
-#include "nacl_io/osdirent.h"
-#include "nacl_io/osinttypes.h"
+#include "ppapi/cpp/instance.h"
 
 
 #ifdef __cplusplus

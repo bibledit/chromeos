@@ -18,19 +18,13 @@
 
 
 #include "bibledit.h"
+#include "nacl_io/ioctl.h"
+#include "nacl_io/nacl_io.h"
+#include "nacl_io/osdirent.h"
+#include "nacl_io/osinttypes.h"
 
 
 #define __STDC_LIMIT_MACROS
-
-
-#include "ppapi/c/pp_stdint.h"
-#include "ppapi/c/ppb_file_io.h"
-#include "ppapi/cpp/directory_entry.h"
-#include "ppapi/cpp/file_io.h"
-#include "ppapi/cpp/file_ref.h"
-#include "ppapi/cpp/file_system.h"
-#include "ppapi/cpp/message_loop.h"
-
 
 
 #ifndef INT32_MAX
@@ -151,10 +145,14 @@ void main_worker_thread_function ()
   initialize_filesystem ();
   
   string directory = "/persistent";
-  string file = directory + "file.txt";
-  filter_url_file_put_contents (file, "Bibledit");
-  string contents = filter_url_file_get_contents (file);
-  cout << contents << endl;
+  //directory = "/";
+  for (unsigned int i = 0; i < 1000; i++) {
+    string file = directory + "/file" + to_string (i) + ".txt";
+    filter_url_file_put_contents (file, string (1024 * 1024, 'X'));
+    string contents = filter_url_file_get_contents (file);
+    cout << file << ": " << contents.size () << endl;
+    
+  }
   
   vector <string> files = filter_url_scandir (directory);
   for (auto file : files) cout << file << endl;
