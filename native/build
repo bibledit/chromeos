@@ -1,0 +1,25 @@
+#!/bin/bash
+
+
+echo Building Bibledit Chrome App
+
+
+pushd `dirname $0` > /dev/null
+SCRIPTPATH=`pwd`
+popd > /dev/null
+echo $SCRIPTPATH
+BUILDPATH=/tmp/bibledit-chromeapp
+
+
+mkdir -p $BUILDPATH
+rsync -av --delete ../../bibledit/lib/* $BUILDPATH
+cd $BUILDPATH
+./configure
+make distclean
+./configure
+
+
+# sed -i.bak '/111androidkey111/d' ant.properties
+# sed -i.bak '/123bibledit321/d' ant.properties
+# echo key.store.password=xxxxx >> ant.properties
+# echo key.alias.password=xxxxx >> ant.properties

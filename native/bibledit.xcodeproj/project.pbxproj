@@ -9,6 +9,7 @@
 /* Begin PBXFileReference section */
 		CA2444081E057F240005C647 /* bibledit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bibledit.h; sourceTree = "<group>"; };
 		CA284C171E0290B800AE3B74 /* make */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = make; sourceTree = "<group>"; };
+		CA4EF2AE1E0C0E1D0071236B /* build */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build; sourceTree = "<group>"; };
 		CAA5EB0D1E02C29300EAAEF5 /* develop.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = develop.txt; sourceTree = "<group>"; };
 		CAAC81381E0282FB00A44986 /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = background.js; sourceTree = "<group>"; };
 		CAAC81391E02830400A44986 /* bibledit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = bibledit.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -28,6 +29,7 @@
 				CAAC81381E0282FB00A44986 /* background.js */,
 				CAAC81391E02830400A44986 /* bibledit.cpp */,
 				CA2444081E057F240005C647 /* bibledit.h */,
+				CA4EF2AE1E0C0E1D0071236B /* build */,
 				CAA5EB0D1E02C29300EAAEF5 /* develop.txt */,
 				CAAC813B1E02830400A44986 /* index.css */,
 				CAAC813C1E02830400A44986 /* index.html */,
