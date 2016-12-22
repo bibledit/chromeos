@@ -39,11 +39,8 @@
 
 
 pp::Instance * pepper_instance = nullptr;
-pp::FileSystem * pepper_file_system = nullptr; // Null on failure.
+pp::Module * pepper_module = nullptr;
 thread * main_worker_thread = nullptr;
-BibleditInstance * bibledit_instance = nullptr;
-PP_Instance g_instance = 0;
-PPB_GetInterface g_get_browser_interface = NULL;
 
 
 vector <string> filter_url_scandir_internal (string folder)
@@ -107,20 +104,65 @@ void filter_url_file_put_contents (string filename, string contents)
 }
 
 
+void initialize_filesystem ()
+{
+  // Initialize nacl_io with PPAPI support.
+  nacl_io_init_ppapi (pepper_instance->pp_instance(), pepper_module->Get ()->get_browser_interface());
+  
+  // By default, nacl_io mounts "/" to pass through to the original NaCl filesystem.
+  // That doesn't do much.
+  // Remount it to a memfs filesystem.
+  int result = umount ("/");
+  if (result != 0) {
+    cerr << strerror (errno) << endl;
+  }
+
+  result = mount ("", "/", "memfs", 0, ""); // Todo for /tmp for extra speed.
+  if (result != 0) {
+    cerr << strerror (errno) << endl;
+  }
+
+  mkdir ("/persistent", 0777);
+  result = mount ("",                                           // source
+                  "/persistent",                                // target
+                  "html5fs",                                    // filesystemtype
+                  0,                                            // mountflags
+                  "type=PERSISTENT,expected_size=10737418240"); // data
+  if (result != 0) {
+    cerr << strerror (errno) << endl;
+  }
+  
+  result = mount ("",       /* source. Use relative URL */
+                  "/http",  /* target */
+                  "httpfs", /* filesystemtype */
+                  0,        /* mountflags */
+                  "");      /* data */
+  if (result != 0) {
+    cerr << strerror (errno) << endl;
+  }
+
+}
+
 
 void main_worker_thread_function ()
 {
   cout << "Thread start" << endl;
-
   
-  filter_url_file_put_contents ("/persistent/file.txt", "Contents");
-  string contents = filter_url_file_get_contents ("/persistent/file.txt");
+  initialize_filesystem ();
+  
+  string directory = "/persistent";
+  string file = directory + "file.txt";
+  filter_url_file_put_contents (file, "Bibledit");
+  string contents = filter_url_file_get_contents (file);
   cout << contents << endl;
   
-  vector <string> files = filter_url_scandir ("/persistent/");
+  vector <string> files = filter_url_scandir (directory);
   for (auto file : files) cout << file << endl;
+
   
-  
+  // Remove interception for POSIX C-library function and release associated resources.
+  nacl_io_uninit ();
+
   cout << "Thread complete" << endl;
 }
 
@@ -129,37 +171,16 @@ void main_worker_thread_function ()
 // @param[in] instance the handle to the browser-side plugin instance.
 BibleditInstance::BibleditInstance (PP_Instance instance) : pp::Instance (instance)
 {
+  // Global pointer to the Pepper instance.
   pepper_instance = this;
-  bibledit_instance = this;
-  g_instance = instance;
-  nacl_io_init_ppapi (instance, g_get_browser_interface);
-
-  
-  // By default, nacl_io mounts "/" to pass through to the original NaCl filesystem.
-  // That doesn't do much.
-  // Remount it to a memfs filesystem.
-  umount ("/");
-  mount ("", "/", "memfs", 0, "");
-  
-  mount ("",                                       /* source */
-         "/persistent",                            /* target */
-         "html5fs",                                /* filesystemtype */
-         0,                                        /* mountflags */
-         "type=PERSISTENT,expected_size=1048576"); /* data */
-  
-  mount ("",       /* source. Use relative URL */
-         "/http",  /* target */
-         "httpfs", /* filesystemtype */
-         0,        /* mountflags */
-         "");      /* data */
-  
-  
+  // Main thread for the work to be done.
   main_worker_thread = new thread (main_worker_thread_function);
 }
 
 
 BibleditInstance::~BibleditInstance ()
 {
+  // Wait till the thread completes.
   main_worker_thread->join ();
 }
 
@@ -185,6 +206,8 @@ void BibleditInstance::HandleMessage (const pp::Var& var_message)
 
 BibleditModule::BibleditModule ()
 {
+  // Global pointer to the Pepper module.
+  pepper_module = this;
 }
 
 
@@ -205,7 +228,7 @@ pp::Instance* BibleditModule::CreateInstance (PP_Instance instance)
 namespace pp {
   // Factory function called by the browser when the module is first loaded.
   // The browser keeps a singleton of this module.
-  // It calls the CreateInstance() method on the object you return to make instances.
+  // It calls the CreateInstance() method on the object you return to create an instance.
   // There is one instance per <embed> tag on the page.
   // This is the main binding point for your NaCl module with the browser.
   Module * CreateModule ()
