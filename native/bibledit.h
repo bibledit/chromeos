@@ -59,6 +59,9 @@
 using namespace std;
 
 
+void post_message_to_gui (const string & msg);
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

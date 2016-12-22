@@ -53,6 +53,7 @@ vector <string> filter_url_scandir_internal (string folder)
       string name = direntry->d_name;
       if (name.substr (0, 1) == ".") continue;
       files.push_back (name);
+      post_message_to_gui ("Reading file " + name);
     }
     closedir (dir);
   }
@@ -151,11 +152,11 @@ void main_worker_thread_function ()
   
   string directory = "/persistent";
   //directory = "/";
-  for (unsigned int i = 0; i < 100; i++) {
+  for (unsigned int i = 0; i < 10; i++) {
     string file = directory + "/file" + to_string (i) + ".txt";
     filter_url_file_put_contents (file, string (1024 * 1024, 'X'));
     string contents = filter_url_file_get_contents (file);
-    cout << file << ": " << contents.size () << endl;
+    post_message_to_gui (file + ": " + to_string (contents.size ()));
     
   }
   
@@ -268,4 +269,11 @@ namespace pp {
   {
     return new BibleditModule ();
   }
+}
+
+
+void post_message_to_gui (const string & msg)
+{
+  pp::Var var_reply (msg);
+  pepper_instance->PostMessage (var_reply);
 }
