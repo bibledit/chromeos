@@ -27,7 +27,9 @@
 #include "ppapi/cpp/module.h"
 #include "ppapi/cpp/instance.h"
 #include "nacl_io/nacl_io.h"
-// BIBLEDIT_LIBRARY_INCLUDES
+#if __has_include("library/bibledit.h")
+#include "library/bibledit.h"
+#endif
 
 
 pp::Instance * pepper_instance = nullptr;
@@ -93,8 +95,20 @@ void main_worker_thread_function ()
   
   post_message_to_gui ("openbrowser");
   post_message_to_gui ("Bibledit ready");
-  
-  // BIBLEDIT_LIBRARY_CALLS
+
+#if __has_include("library/bibledit.h")
+
+  // Initialize the library.
+  // Package files are at folder "/http" and the webroot is at "/webroot"
+  bibledit_initialize_library ("/http", "/webroot");
+  // Start it.
+  bibledit_start_library ();
+  // Keep running till Bibledit stops or gets interrupted.
+  while (bibledit_is_running ()) { }
+  // Shutdown.
+  bibledit_shutdown_library ();
+
+#endif
   
   destroy_nacl_io ();
 }
