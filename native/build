@@ -85,23 +85,13 @@ rm valgrind
 rm -r xcode
 
 
-
-exit
-
-
-
-
-# Remove some data so that the .apk does not exceed 50 Mbytes - the limit Google Play puts on it.
-# Update: The new limit is now 100 Mbytes.
-
-
-# Android does not provide 'stoi' in C++.
-sed -i.bak '/HAVE_STOI/d' config.h
+# Chrome OS does not provide 'stoi' in C++.
+# sed -i.bak '/HAVE_STOI/d' config.h
 # No libsword.
 sed -i.bak '/HAVE_SWORD/d' config.h
 # No file-upload possible from web view.
 sed -i.bak '/CONFIG_ENABLE_FILE_UPLOAD/d' config/config.h
-# Android does not need BSD memory profiling calls.
+# Chrome OS does not need BSD memory profiling calls.
 sed -i.bak '/HAVE_MACH_MACH/d' config.h
 # Cleanup
 rm config.h.bak
@@ -119,8 +109,11 @@ rm config/config.h.bak
 sed -n "/libbibledit_a_SOURCES/,/bin_PROGRAMS/p" Makefile.am | tail -n +2 | sed '$d' | strings | tr -d '\n' | sed 's/\\//g' > sources.txt
 
 
-# Create Android.mk Makefile from Android.am.
-sed "s|SOURCEFILES|$(cat sources.txt)|" Android.am > Android.mk
+# Add the sources to the Makefile.
+sed -i.bak "s|# BIBLEDIT_SOURCES|$(cat sources.txt)|" Makefile
 rm sources.txt
+rm Makefile.bak
 
 
+# Build the code.
+./make
