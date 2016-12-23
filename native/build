@@ -125,5 +125,18 @@ rm sources.txt
 rm Makefile.bak
 
 
+# Compiling sqlite/sqlite3.c gives an error.
+# So clear all that source out.
+# Instead it uses a prebuilt sqlite port from the Chromium webports.
+echo > sqlite/sqlite3.c
+
+
+# Patches to prevent link errors.
+# pnacl/Release/mbedtls/timing.o: error: undefined reference to 'alarm'
+sed -i.bak '/alarm( seconds )/d' mbedtls/timing.c
+rm mbedtls/timing.c.bak
+
+
+
 # Build the code.
 ./make

@@ -1,3 +1,12 @@
 Native Client information at https://developer.chrome.com/native-client
 
-Ported libraries at https://chromium.googlesource.com/webports
+Ported libraries
+https://chromium.googlesource.com/webports
+
+Links
+Git: https://chromium.googlesource.com/webports.git
+Bugs: https://bugs.chromium.org/p/naclports/issues/list
+Continuous builder: http://build.chromium.org/p/client.nacl.ports/
+Continuous build artifacts: http://gsdview.appspot.com/webports/builds/
+
+The included binary libsqlite3.a was downloaded from the Chromium webports, version pepper 49.

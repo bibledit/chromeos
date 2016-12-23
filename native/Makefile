@@ -34,7 +34,7 @@ LIBS = nacl_io ppapi_cpp ppapi pthread
 
 CFLAGS = -Wall -I.
 CXXFLAGS = -Wall -std=gnu++11 -I.
-LDFLAGS = -std=gnu++11 --pnacl-exceptions=sjlj
+LDFLAGS = -std=gnu++11 --pnacl-exceptions=sjlj -L. -lsqlite3
 SOURCES = bibledit.cpp \
 # BIBLEDIT_SOURCES
 
