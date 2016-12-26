@@ -10,3 +10,12 @@ Continuous builder: http://build.chromium.org/p/client.nacl.ports/
 Continuous build artifacts: http://gsdview.appspot.com/webports/builds/
 
 The included binary libsqlite3.a was downloaded from the Chromium webports, version pepper 49.
+
+Google says:
+Dear Developer,
+We’re reaching out to you because you’re registered as a Chrome App developer in the Chrome Web Store. As you might have seen recently, we announced that we will be increasing our focus on the Web and open standards by removing support for Chrome packaged apps and hosted apps on Windows, Mac, and Linux over the next two years. Chrome apps will remain supported and maintained on Chrome OS for the foreseeable future. Chrome extensions will also continue to be supported on all platforms.
+Starting in late 2016, newly published Chrome apps will only be available to users on Chrome OS. Existing Chrome apps will remain accessible on all platforms, and you can continue to update them.
+In the second half of 2017, the Chrome Web Store will no longer show Chrome apps on Windows, Mac, and Linux, but will continue to surface extensions and themes. In early 2018, users on these platforms will no longer be able to load Chrome apps.
+We encourage you to migrate your Chrome app to the open web, and we’ve written a transition guide (https://developer.chrome.com/apps/migration) to help you with this process. If the web platform can’t provide the functionality you need, please let us know why. You can also consider using a Chrome extension (https://developer.chrome.com/extensions/api_index) or an alternate app platform such as Electron or NW.js.
+Best, The Chrome Web Store and Apps Team,
+
