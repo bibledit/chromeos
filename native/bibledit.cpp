@@ -94,7 +94,7 @@ void main_worker_thread_function ()
   initialize_nacl_io ();
   
   post_message_to_gui ("openbrowser");
-  post_message_to_gui ("Bibledit ready");
+  post_message_to_gui ("Bibledit running");
 
 #if __has_include("library/bibledit.h")
 
