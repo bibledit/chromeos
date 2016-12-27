@@ -85,9 +85,6 @@ rm valgrind
 rm -r xcode
 
 
-# Chrome OS does not provide 'stoi' in C++.
-# sed -i.bak '/HAVE_STOI/d' config.h
-
 # No libsword.
 sed -i.bak '/HAVE_SWORD/d' config.h
 
