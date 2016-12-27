@@ -83,6 +83,8 @@ rm sources/oshb.xml.gz
 rm -rf unittests
 rm valgrind
 rm -r xcode
+find . -name '*.Po' -delete
+find . -name '.deps' -delete
 
 
 # No libsword.
@@ -133,6 +135,10 @@ echo > sqlite/sqlite3.c
 sed -i.bak '/alarm( seconds )/d' mbedtls/timing.c
 rm mbedtls/timing.c.bak
 
+
+# List the assets in the packaged Chrome App.
+find . -type d -name '*' > package_directories.txt
+find . -type f -name '*' > package_files.txt
 
 
 # Build the code.
