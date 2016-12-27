@@ -128,7 +128,7 @@ rm Makefile.bak
 echo > sqlite/sqlite3.c
 
 
-# Patches to prevent link errors.
+# Patch for link errors.
 # pnacl/Release/mbedtls/timing.o: error: undefined reference to 'alarm'
 sed -i.bak '/alarm( seconds )/d' mbedtls/timing.c
 rm mbedtls/timing.c.bak
