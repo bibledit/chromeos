@@ -8,7 +8,8 @@ https://developer.chrome.com/apps/getstarted_arc
 https://chrome.google.com/webstore/detail/arc-welder/emfinbmielocnlhgmfkkmkngdoccbadn/
 
 Basically it works like this: 
-* Install and start ARC Welder. 
+* Install and start ARC Welder.
+  https://chrome.google.com/webstore/detail/arc-welder/emfinbmielocnlhgmfkkmkngdoccbadn
 * Open the Bibledit release APK file. 
 * Test it. 
 * Download a ZIP file within ARC Welder.
