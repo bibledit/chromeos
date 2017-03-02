@@ -19,8 +19,8 @@ mkdir -p $BIBLEDITCHROMEOS
 
 rm $BIBLEDITCHROMEOS/* 2> /dev/null
 rm -rf $BIBLEDITCHROMEOS/chromeos
-rsync --archive --delete ../../bibledit/lib $BIBLEDITCHROMEOS
-rsync --archive --delete ../../bibledit/android $BIBLEDITCHROMEOS
+rsync --archive --delete ../../cloud $BIBLEDITCHROMEOS
+rsync --archive --delete ../../android $BIBLEDITCHROMEOS
 
 echo Renaming folder from android to chromeos
 mv $BIBLEDITCHROMEOS/android $BIBLEDITCHROMEOS/chromeos
